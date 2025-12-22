@@ -39,7 +39,7 @@ MENSAGENS = [
     ),
     MensagemProgramada(
         nome="lanche_tarde",
-        horario="15:00",
+        horario="15:29",
         texto=(
             "☕ *Hora do lanche da tarde!* 🥐\n\n"
             "1️⃣ Café + bolo\n"
