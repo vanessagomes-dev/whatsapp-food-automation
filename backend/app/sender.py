@@ -1,26 +1,31 @@
 from datetime import datetime
 
-from whatsapp_client import WhatsAppClientMock
+from .config import WHATSAPP_GROUP_ID
+from .messages import montar_mensagem
+from .whatsapp_factory import get_whatsapp_client
 
 
-GROUP_ID = "GROUP_MOCK_123"
+def enviar_mensagem(tipo: str) -> None:
+    agora = datetime.now().strftime("%H:%M:%S")
+    print(f"[SENDER] Disparo de mensagem tipo: {tipo}")
 
+    client = get_whatsapp_client()
 
-def enviar_mensagem(mensagem):
-    client = WhatsAppClientMock()
+    if tipo == "teste_now":
+        mensagem = "🚀 TESTE NOW — Automação WhatsApp em ambiente PROD"
+        imagem = "teste_now.jpg"
+    else:
+        mensagem, imagem = montar_mensagem(tipo)
 
-    response = client.send_image_message(
-        group_id=GROUP_ID,
-        image_url=mensagem.imagem,
-        caption=mensagem.texto,
+    client.send_message(
+        group_id=WHATSAPP_GROUP_ID,
+        message=mensagem,
+        image_path=imagem,
     )
 
-    agora = datetime.now().strftime("%H:%M:%S")
-
     print("=" * 60)
-    print(f"[{agora}] ENVIO MOCK WHATSAPP")
-    print(f"Mensagem: {mensagem.nome}")
-    print(f"Grupo: {GROUP_ID}")
-    print(f"Status: {response['status']}")
-    print(f"Message ID: {response['messages'][0]['id']}")
+    print(f"[{agora}] ENVIO WHATSAPP ({type(client).__name__})")
+    print(f"Mensagem enviada: {mensagem}")
+    print(f"Grupo destino: {WHATSAPP_GROUP_ID}")
+    print("Status: ENVIADO (mock/prod)")
     print("=" * 60)

@@ -1,6 +1,6 @@
 import time
 
-from scheduler import iniciar_scheduler
+from .scheduler import iniciar_scheduler
 
 
 def main():

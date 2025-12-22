@@ -23,7 +23,7 @@ MENSAGENS = [
             "3️⃣ Combo fitness\n\n"
             f"📲 Faça seu pedido aqui: {LINK_PEDIDO}"
         ),
-        imagem="https://via.placeholder.com/600x400?text=Cafe+da+Manha"
+        imagem="https://via.placeholder.com/600x400?text=Cafe+da+Manha",
     ),
     MensagemProgramada(
         nome="almoco",
@@ -35,7 +35,7 @@ MENSAGENS = [
             "3️⃣ Prato fitness\n\n"
             f"📲 Faça seu pedido aqui: {LINK_PEDIDO}"
         ),
-        imagem="https://via.placeholder.com/600x400?text=Almoco"
+        imagem="https://via.placeholder.com/600x400?text=Almoco",
     ),
     MensagemProgramada(
         nome="lanche_tarde",
@@ -46,7 +46,7 @@ MENSAGENS = [
             "2️⃣ Suco natural + salgado\n\n"
             f"📲 Faça seu pedido aqui: {LINK_PEDIDO}"
         ),
-        imagem="https://via.placeholder.com/600x400?text=Lanche+da+Tarde"
+        imagem="https://via.placeholder.com/600x400?text=Lanche+da+Tarde",
     ),
     MensagemProgramada(
         nome="jantar",
@@ -58,6 +58,18 @@ MENSAGENS = [
             "3️⃣ Opção leve\n\n"
             f"📲 Faça seu pedido aqui: {LINK_PEDIDO}"
         ),
-        imagem="https://via.placeholder.com/600x400?text=Jantar"
+        imagem="https://via.placeholder.com/600x400?text=Jantar",
     ),
 ]
+
+
+def montar_mensagem(tipo: str) -> tuple[str, str]:
+    """
+    Retorna (texto, imagem) com base no tipo da mensagem.
+    """
+
+    for mensagem in MENSAGENS:
+        if mensagem.nome == tipo:
+            return mensagem.texto, mensagem.imagem
+
+    raise ValueError(f"Tipo de mensagem não encontrado: {tipo}")
