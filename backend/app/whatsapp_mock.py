@@ -1,4 +1,4 @@
-from whatsapp_base import WhatsAppClientBase
+from .whatsapp_base import WhatsAppClientBase
 
 
 class WhatsAppClientMock(WhatsAppClientBase):
