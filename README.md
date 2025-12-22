@@ -1,37 +1,47 @@
 # WhatsApp Food Automation 🍽️📲
 
-Automação de envio de mensagens no WhatsApp para estabelecimentos de alimentação,
-com agendamento por horário, envio de texto e imagem, e arquitetura preparada
-para ambiente de produção.
+Automação de envio de mensagens via WhatsApp para estabelecimentos de alimentação, com agendamento inteligente, envio de texto e imagem e arquitetura preparada para ambiente de produção e evolução como API.
+
+Projeto desenvolvido com foco em MVP, escalabilidade e uso comercial real.
 
 ---
 
 ## 🎯 Objetivo do Projeto
 
-Automatizar a comunicação com clientes via WhatsApp, reduzindo trabalho manual
-e garantindo mensagens padronizadas em horários estratégicos
-(café da manhã, almoço, lanche e jantar).
+Automatizar a comunicação entre estabelecimentos e clientes via WhatsApp, reduzindo trabalho manual e garantindo mensagens padronizadas em horários estratégicos, como:
+
+- Café da manhã
+
+- Almoço
+
+- Lanche
+
+- Jantar
 
 ---
 
 ## 🧠 Visão de Negócio
 
+Este projeto resolve um problema operacional comum em pequenos e médios comércios:
+
 - Redução de esforço operacional
-- Comunicação padronizada
+- Padronização de comunicação
 - Aumento de conversão de pedidos
+- Menos erros manuais
 - Escalável para múltiplos clientes
-- Preparado para integração com WhatsApp API oficial
+- Arquitetura preparada para integração com WhatsApp API oficial
 
 ---
 
-## 🏗️ Arquitetura
+## 🏗️ Arquitetura Técnica
 
 - Python 3
 - Scheduler com APScheduler
-- Arquitetura desacoplada
+- Arquitetura modular desacoplada
 - Factory Pattern para troca de clientes WhatsApp
-- Modo MOCK e PROD via variável de ambiente
-- Pronto para evolução como API (FastAPI)
+- Separação clara entre domínio, infraestrutura e execução
+- Suporte a modo MOCK e PROD via variável de ambiente
+- Preparado para evolução como API REST com FastAPI
 
 ---
 
@@ -73,50 +83,46 @@ python -m app.main
 ```
 ---
 
-## 🗺️ Roadmap
+## 🗺️ Roadmap Técnico
 
--API REST com FastAPI
+- API REST com FastAPI
 
--Integração WhatsApp Cloud API
+- Integração WhatsApp Cloud API ou Twilio
 
--Dashboard administrativo
+- Dashboard administrativo
 
--Multi-clientes
+- Suporte a múltiplos clientes
 
--Persistência em banco de dados
+- Persistência em banco de dados
 
--Deploy em cloud
-
-```mardown
-
-📌 **Isso sozinho já eleva seu projeto de nível.**
-
-👉 Faça um **commit**:
-```
+- Deploy em cloud (Docker-ready)
 
 ---
 
 # WhatsApp Food Automation API
 
-API para automação de pedidos via WhatsApp, com foco em pequenos comércios
-como cafeterias, lanchonetes e restaurantes.
+API para automação de mensagens via WhatsApp, com foco em pequenos comércios
+do setor alimentício.
 
 ## 🎯 Objetivo
+
 Automatizar respostas, pedidos e fluxos básicos de atendimento,
 reduzindo tempo operacional e erros humanos.
 
-## 🧱 Arquitetura
-- FastAPI (API REST)
-- Scheduler desacoplado
-- Estrutura modular e escalável
-- Pronto para integração com WhatsApp Cloud API ou Twilio
+## 🧱 Arquitetura da API
 
-## 🚀 Como executar
+- FastAPI 
+- Scheduler desacoplado da API
+- Estrutura modular e escalável
+- Pronto para integração com serviços externos
+
+## 🚀 Como executar a API
 
 ### Criar ambiente virtual
 ```bash
 python -m venv venv
-source venv/bin/activate  # Windows: venv\Scripts\activate
+source venv/bin/activate 
+# Windows: venv\Scripts\activate
 ```
 
 Instalar dependências
@@ -131,7 +137,7 @@ uvicorn app.api:app --reload
 
 ---
 
-## 🔎 Endpoints
+## 🔎 Endpoints (iniciais)
 
 - GET /health → status da API
 
@@ -141,15 +147,21 @@ uvicorn app.api:app --reload
 
 ## 💼 Visão Comercial
 
-Este projeto pode ser utilizado por estabelecimentos para:
+Este projeto pode ser utilizado para:
 
-- Atendimento automático
+- Atendimento automático via WhatsApp
 
-- Confirmação de pedidos
+- Confirmação e lembrete de pedidos
+
+- Comunicação em horários estratégicos
 
 - Redução de tempo de resposta
 
-- Padronização de mensagens
+- Base sólida para MVPs e solução SaaS
 
-- Modelo ideal para MVPs e SaaS white-label.
+## 🧩 Status do Projeto
+
+🟢 Em desenvolvimento ativo
+🧪 Mock funcional
+🏗️ Arquitetura pronta para produção
 
