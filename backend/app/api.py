@@ -1,6 +1,8 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
-from datetime import datetime
+from typing import Optional
+
+from .sender import enviar_mensagem
 
 app = FastAPI(
     title="WhatsApp Food Automation API",
@@ -8,21 +10,29 @@ app = FastAPI(
 )
 
 
-class TestMessage(BaseModel):
-    phone: str
-    message: str
+# Schema de entrada (Request Body)
+class SendMessageRequest(BaseModel):
+    destinatario: str
+    mensagem: str
+    imagem: Optional[str] = None
 
 
+# Healthcheck
 @app.get("/health")
 def health_check():
     return {"status": "ok"}
 
 
+# Envio manual (API)
 @app.post("/send/test-now")
-def send_test_message(data: TestMessage):
+def send_test_message(payload: SendMessageRequest):
+    enviar_mensagem(
+        destinatario=payload.destinatario,
+        mensagem=payload.mensagem,
+        imagem=payload.imagem,
+    )
+
     return {
-        "status": "queued",
-        "phone": data.phone,
-        "message": data.message,
-        "timestamp": datetime.utcnow().isoformat()
+        "status": "success",
+        "message": "Mensagem enviada com sucesso",
     }
