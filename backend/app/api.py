@@ -3,6 +3,7 @@ from pydantic import BaseModel
 from typing import Optional
 
 from .sender import enviar_mensagem
+from .messages import listar_mensagens
 
 app = FastAPI(
     title="WhatsApp Food Automation API",
@@ -21,6 +22,15 @@ class SendMessageRequest(BaseModel):
 @app.get("/health")
 def health_check():
     return {"status": "ok"}
+
+
+@app.get("/messages")
+def get_messages():
+    """
+    Lista todas as mensagens programadas
+    (café da manhã, almoço, lanche, jantar)
+    """
+    return listar_mensagens()
 
 
 # Envio manual (API)
