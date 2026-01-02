@@ -1,9 +1,9 @@
-from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
-from typing import Optional, List
+from fastapi import FastAPI, Query
+from typing import List, Optional
 
+from .schemas import MessageHistoryResponse
+from .storage import load_messages
 from .sender import enviar_mensagem
-from .messages import listar_mensagens
 
 app = FastAPI(
     title="WhatsApp Food Automation API",
@@ -11,123 +11,53 @@ app = FastAPI(
 )
 
 
-# =========================
-# Schemas
-# =========================
-class MessageResponse(BaseModel):
-    nome: str
-    horario: str
-    texto: str
-    imagem: str
-
-
-class SendMessageRequest(BaseModel):
-    destinatario: str
-    mensagem: str
-    imagem: Optional[str] = None
-
-
-# =========================
+# --------------------
 # Health
-# =========================
+# --------------------
 @app.get("/")
+def root():
+    return {"status": "ok"}
+
+
 @app.get("/health")
 def health_check():
     return {"status": "ok"}
 
 
-# =========================
-# Messages — LIST
-# =========================
+# --------------------
+# Histórico (versão oficial)
+# --------------------
 @app.get(
-    "/v1/messages",
-    response_model=List[MessageResponse],
-    tags=["Messages"],
+    "/v1/history",
+    response_model=List[MessageHistoryResponse],
 )
-def get_messages():
-    return listar_mensagens()
+def get_history(
+    tipo: Optional[str] = Query(None),
+    origem: Optional[str] = Query(None),
+    modo: Optional[str] = Query(None),
+):
+    return load_messages(tipo=tipo, origem=origem, modo=modo)
 
 
+# --------------------
+# Aliases DX (frontend-friendly)
+# --------------------
 @app.get(
-    "/messages",
-    response_model=List[MessageResponse],
-    tags=["Messages"],
+    "/history",
+    response_model=List[MessageHistoryResponse],
 )
-def get_messages_alias():
-    return listar_mensagens()
+def get_history_alias(
+    tipo: Optional[str] = Query(None),
+    origem: Optional[str] = Query(None),
+    modo: Optional[str] = Query(None),
+):
+    return load_messages(tipo=tipo, origem=origem, modo=modo)
 
 
-# =========================
-# Messages — DETAIL
-# =========================
-@app.get(
-    "/v1/messages/{tipo}",
-    response_model=MessageResponse,
-    tags=["Messages"],
-)
-def get_message_by_tipo(tipo: str):
-    mensagens = listar_mensagens()
-
-    for mensagem in mensagens:
-        if mensagem["nome"] == tipo:
-            return mensagem
-
-    raise HTTPException(
-        status_code=404,
-        detail="Mensagem não encontrada",
-    )
-
-
-@app.get(
-    "/messages/{tipo}",
-    response_model=MessageResponse,
-    tags=["Messages"],
-)
-def get_message_by_tipo_alias(tipo: str):
-    mensagens = listar_mensagens()
-
-    for mensagem in mensagens:
-        if mensagem["nome"] == tipo:
-            return mensagem
-
-    raise HTTPException(
-        status_code=404,
-        detail="Mensagem não encontrada",
-    )
-
-
-# =========================
-# Send — TEST / MANUAL
-# =========================
-@app.post(
-    "/v1/send/test-now",
-    tags=["Send"],
-)
-def send_test_message(payload: SendMessageRequest):
-    enviar_mensagem(
-        destinatario=payload.destinatario,
-        mensagem=payload.mensagem,
-        imagem=payload.imagem,
-    )
-
-    return {
-        "status": "success",
-        "message": "Mensagem enviada com sucesso",
-    }
-
-
-@app.post(
-    "/send/test-now",
-    tags=["Send"],
-)
-def send_test_message_alias(payload: SendMessageRequest):
-    enviar_mensagem(
-        destinatario=payload.destinatario,
-        mensagem=payload.mensagem,
-        imagem=payload.imagem,
-    )
-
-    return {
-        "status": "success",
-        "message": "Mensagem enviada com sucesso",
-    }
+# --------------------
+# Envio manual (teste)
+# --------------------
+@app.post("/v1/send/test-now")
+def send_test_message():
+    enviar_mensagem(tipo="teste_now", origem="api")
+    return {"status": "success"}

@@ -10,11 +10,6 @@ def enviar_mensagem(
     tipo: str,
     origem: str = "scheduler",
 ) -> None:
-    """
-    Envia uma mensagem via WhatsApp (mock ou prod)
-    e registra o envio no storage.
-    """
-
     agora = datetime.now().strftime("%H:%M:%S")
     print(f"[SENDER] Disparo de mensagem tipo: {tipo}")
 
@@ -32,7 +27,6 @@ def enviar_mensagem(
         image_path=imagem,
     )
 
-    # Persistência do envio
     save_message(
         {
             "tipo": tipo,

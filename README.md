@@ -1,21 +1,21 @@
 # WhatsApp Food Automation 🍽️📲
 
-Automação de envio de mensagens via WhatsApp para estabelecimentos de alimentação, com agendamento inteligente, envio de texto e imagem e arquitetura preparada para ambiente de produção e evolução como API.
+Sistema de automação de envio de mensagens via WhatsApp para estabelecimentos
+do setor alimentício, com agendamento inteligente, histórico de mensagens
+e API REST preparada para evolução comercial.
 
-Projeto desenvolvido com foco em MVP, escalabilidade e uso comercial real.
+Projeto desenvolvido com foco em MVP, escalabilidade e uso real em produção.
 
 ---
 
 ## 🎯 Objetivo do Projeto
 
-Automatizar a comunicação entre estabelecimentos e clientes via WhatsApp, reduzindo trabalho manual e garantindo mensagens padronizadas em horários estratégicos, como:
+Automatizar a comunicação entre estabelecimentos e clientes via WhatsApp,
+reduzindo trabalho manual e garantindo mensagens padronizadas em horários estratégicos, como:
 
 - Café da manhã
-
 - Almoço
-
 - Lanche
-
 - Jantar
 
 ---
@@ -29,19 +29,20 @@ Este projeto resolve um problema operacional comum em pequenos e médios comérc
 - Aumento de conversão de pedidos
 - Menos erros manuais
 - Escalável para múltiplos clientes
-- Arquitetura preparada para integração com WhatsApp API oficial
+- Base sólida para MVP e futura solução SaaS
 
 ---
 
 ## 🏗️ Arquitetura Técnica
 
 - Python 3
-- Scheduler com APScheduler
+- FastAPI (API REST)
+- APScheduler (agendamentos)
 - Arquitetura modular desacoplada
-- Factory Pattern para troca de clientes WhatsApp
-- Separação clara entre domínio, infraestrutura e execução
+- Factory Pattern para clientes WhatsApp
+- Separação clara entre domínio, infraestrutura e API
 - Suporte a modo MOCK e PROD via variável de ambiente
-- Preparado para evolução como API REST com FastAPI
+- Persistência local com possibilidade de evolução para banco de dados
 
 ---
 
@@ -50,15 +51,20 @@ Este projeto resolve um problema operacional comum em pequenos e médios comérc
 ```text
 backend/
  ├── app/
- │    ├── main.py              # Inicialização da aplicação
- │    ├── scheduler.py         # Agendamento das mensagens
- │    ├── sender.py            # Disparo de mensagens
- │    ├── messages.py          # Conteúdo das mensagens
- │    ├── whatsapp_factory.py  # Factory de clientes WhatsApp
- │    ├── whatsapp_mock.py     # Cliente mock
- │    ├── whatsapp_prod.py     # Cliente produção (placeholder)
- │    └── whatsapp_base.py     # Interface base
-```
+ │    ├── api.py                # API FastAPI
+ │    ├── main.py               # Inicialização geral
+ │    ├── scheduler.py          # Agendamentos
+ │    ├── sender.py             # Disparo e registro das mensagens
+ │    ├── storage.py            # Persistência de histórico
+ │    ├── schemas.py            # Schemas de resposta da API
+ │    ├── messages.py           # Conteúdo das mensagens
+ │    ├── whatsapp_factory.py   # Factory de clientes WhatsApp
+ │    ├── whatsapp_mock.py      # Cliente mock
+ │    ├── whatsapp_prod.py      # Cliente produção (placeholder)
+ │    ├── whatsapp_base.py      # Interface base
+ │    └── data/
+ │         └── messages_history.json
+
 ---
 
 ## 🧪 Modos de Execução
@@ -76,92 +82,78 @@ TEST_MODE=false
 ---
 
 ## ▶️ Como Executar
+Ambiente local
 
 ```bash
 cd backend
 python -m app.main
 ```
+
+Executar API
+```bash
+uvicorn app.api:app --reload
+```
+
+Acesse:
+
+http://localhost:8000/docs
+
+http://localhost:8000/health
+
+---
+
+## 🔎 Endpoints Disponíveis
+
+Saúde
+
+- GET /health
+
+Envio de mensagem (teste)
+
+- POST /v1/send/test-now
+
+Histórico de mensagens
+
+- GET /v1/history
+
+- GET /v1/history?tipo=almoco
+
+- GET /v1/history?origem=scheduler
+
+- GET /v1/history?modo=mock
+
+Alias DX (frontend-friendly):
+
+- GET /history
+
+---
+
+## 📊 Histórico e Auditoria
+
+Todas as mensagens enviadas são persistidas em storage local,
+permitindo auditoria, filtros e integração direta com dashboards frontend.
+
 ---
 
 ## 🗺️ Roadmap Técnico
 
-- API REST com FastAPI
+- Dashboard administrativo (frontend)
 
-- Integração WhatsApp Cloud API ou Twilio
+- Filtros avançados e métricas
 
-- Dashboard administrativo
+- Persistência em banco de dados (PostgreSQL)
+
+- Integração com WhatsApp Cloud API / Twilio
 
 - Suporte a múltiplos clientes
-
-- Persistência em banco de dados
 
 - Deploy em cloud (Docker-ready)
 
 ---
 
-# WhatsApp Food Automation API
-
-API para automação de mensagens via WhatsApp, com foco em pequenos comércios
-do setor alimentício.
-
-## 🎯 Objetivo
-
-Automatizar respostas, pedidos e fluxos básicos de atendimento,
-reduzindo tempo operacional e erros humanos.
-
-## 🧱 Arquitetura da API
-
-- FastAPI 
-- Scheduler desacoplado da API
-- Estrutura modular e escalável
-- Pronto para integração com serviços externos
-
-## 🚀 Como executar a API
-
-### Criar ambiente virtual
-```bash
-python -m venv venv
-source venv/bin/activate 
-# Windows: venv\Scripts\activate
-```
-
-Instalar dependências
-```bash
-pip install fastapi uvicorn
-```
-
-Subir API
-```bash
-uvicorn app.api:app --reload
-```
-
----
-
-## 🔎 Endpoints (iniciais)
-
-- GET /health → status da API
-
-- POST /send/test-now → simula envio de mensagem
-
-- GET /messages → histórico de mensagens
-
-## 💼 Visão Comercial
-
-Este projeto pode ser utilizado para:
-
-- Atendimento automático via WhatsApp
-
-- Confirmação e lembrete de pedidos
-
-- Comunicação em horários estratégicos
-
-- Redução de tempo de resposta
-
-- Base sólida para MVPs e solução SaaS
-
 ## 🧩 Status do Projeto
 
-🟢 Em desenvolvimento ativo
-🧪 Mock funcional
+🟢 MVP funcional
+🧪 Mock validado
 🏗️ Arquitetura pronta para produção
-
+🚀 Evolução contínua
