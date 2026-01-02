@@ -6,7 +6,7 @@ e API REST preparada para evolução comercial.
 
 Projeto desenvolvido com foco em MVP, escalabilidade e uso real em produção.
 
----
+
 
 ## 🎯 Objetivo do Projeto
 
@@ -18,7 +18,7 @@ reduzindo trabalho manual e garantindo mensagens padronizadas em horários estra
 - Lanche
 - Jantar
 
----
+
 
 ## 🧠 Visão de Negócio
 
@@ -31,7 +31,7 @@ Este projeto resolve um problema operacional comum em pequenos e médios comérc
 - Escalável para múltiplos clientes
 - Base sólida para MVP e futura solução SaaS
 
----
+
 
 ## 🏗️ Arquitetura Técnica
 
@@ -44,7 +44,7 @@ Este projeto resolve um problema operacional comum em pequenos e médios comérc
 - Suporte a modo MOCK e PROD via variável de ambiente
 - Persistência local com possibilidade de evolução para banco de dados
 
----
+
 
 ## ⚙️ Estrutura do Projeto
 
@@ -64,8 +64,8 @@ backend/
  │    ├── whatsapp_base.py      # Interface base
  │    └── data/
  │         └── messages_history.json
+````
 
----
 
 ## 🧪 Modos de Execução
 
@@ -79,7 +79,6 @@ Produção (simulado)
 ```env
 TEST_MODE=false
 ```
----
 
 ## ▶️ Como Executar
 Ambiente local
@@ -94,13 +93,12 @@ Executar API
 uvicorn app.api:app --reload
 ```
 
-Acesse:
+# Acesse
 
-http://localhost:8000/docs
+- http://localhost:8000/docs
 
-http://localhost:8000/health
+- http://localhost:8000/health
 
----
 
 ## 🔎 Endpoints Disponíveis
 
@@ -112,7 +110,7 @@ Envio de mensagem (teste)
 
 - POST /v1/send/test-now
 
-Histórico de mensagens
+Histórico de mensagem
 
 - GET /v1/history
 
@@ -126,14 +124,12 @@ Alias DX (frontend-friendly):
 
 - GET /history
 
----
 
 ## 📊 Histórico e Auditoria
 
 Todas as mensagens enviadas são persistidas em storage local,
 permitindo auditoria, filtros e integração direta com dashboards frontend.
 
----
 
 ## 🗺️ Roadmap Técnico
 
@@ -149,7 +145,6 @@ permitindo auditoria, filtros e integração direta com dashboards frontend.
 
 - Deploy em cloud (Docker-ready)
 
----
 
 ## 🧩 Status do Projeto
 
