@@ -1,30 +1,50 @@
-import DashboardLayout from "../layouts/DashboardLayout";
+import { useEffect, useState } from "react";
+import { fetchHistory } from "../services/history";
 
 export default function History() {
-  return (
-    <DashboardLayout>
-      <div className="bg-white rounded shadow p-6">
-        <h2 className="text-lg font-semibold mb-4">Histórico de Mensagens</h2>
+  const [messages, setMessages] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-        <table className="w-full text-left border">
-          <thead className="bg-gray-100">
-            <tr>
-              <th className="p-2 border">Tipo</th>
-              <th className="p-2 border">Mensagem</th>
-              <th className="p-2 border">Horário</th>
-              <th className="p-2 border">Modo</th>
+  useEffect(() => {
+    fetchHistory()
+      .then(setMessages)
+      .finally(() => setLoading(false));
+  }, []);
+
+  if (loading) {
+    return <p className="p-4">Carregando histórico...</p>;
+  }
+
+  return (
+    <div className="p-6">
+      <h1 className="text-2xl font-bold mb-4">
+        Histórico de Mensagens
+      </h1>
+
+      <table className="w-full border">
+        <thead className="bg-gray-100">
+          <tr>
+            <th className="border p-2">Tipo</th>
+            <th className="border p-2">Mensagem</th>
+            <th className="border p-2">Origem</th>
+            <th className="border p-2">Modo</th>
+            <th className="border p-2">Data</th>
+          </tr>
+        </thead>
+        <tbody>
+          {messages.map((msg, index) => (
+            <tr key={index}>
+              <td className="border p-2">{msg.tipo}</td>
+              <td className="border p-2">{msg.mensagem}</td>
+              <td className="border p-2">{msg.origem}</td>
+              <td className="border p-2">{msg.modo}</td>
+              <td className="border p-2">
+                {new Date(msg.timestamp).toLocaleString()}
+              </td>
             </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td className="p-2 border">teste_now</td>
-              <td className="p-2 border">🚀 TESTE NOW — Automação WhatsApp</td>
-              <td className="p-2 border">10:04</td>
-              <td className="p-2 border">mock</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </DashboardLayout>
+          ))}
+        </tbody>
+      </table>
+    </div>
   );
 }

@@ -1,4 +1,5 @@
 from fastapi import FastAPI, Query
+from fastapi.middleware.cors import CORSMiddleware
 from typing import List, Optional
 
 from .schemas import MessageHistoryResponse
@@ -10,10 +11,25 @@ app = FastAPI(
     version="1.0.0",
 )
 
+# --------------------
+# CORS (Frontend React)
+# --------------------
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # --------------------
 # Health
 # --------------------
+
+
 @app.get("/")
 def root():
     return {"status": "ok"}
@@ -23,10 +39,11 @@ def root():
 def health_check():
     return {"status": "ok"}
 
+# --------------------
+# Histórico (oficial)
+# --------------------
 
-# --------------------
-# Histórico (versão oficial)
-# --------------------
+
 @app.get(
     "/v1/history",
     response_model=List[MessageHistoryResponse],
@@ -38,10 +55,11 @@ def get_history(
 ):
     return load_messages(tipo=tipo, origem=origem, modo=modo)
 
+# --------------------
+# Alias DX (frontend)
+# --------------------
 
-# --------------------
-# Aliases DX (frontend-friendly)
-# --------------------
+
 @app.get(
     "/history",
     response_model=List[MessageHistoryResponse],
@@ -53,10 +71,11 @@ def get_history_alias(
 ):
     return load_messages(tipo=tipo, origem=origem, modo=modo)
 
-
 # --------------------
 # Envio manual (teste)
 # --------------------
+
+
 @app.post("/v1/send/test-now")
 def send_test_message():
     enviar_mensagem(tipo="teste_now", origem="api")
