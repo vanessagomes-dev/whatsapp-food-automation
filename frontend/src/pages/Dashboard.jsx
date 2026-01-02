@@ -9,6 +9,7 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
 
   const [filterTipo, setFilterTipo] = useState("all");
+  const [filterOrigem, setFilterOrigem] = useState("all");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
 
@@ -24,6 +25,9 @@ export default function Dashboard() {
     const matchesTipo =
       filterTipo === "all" || m.tipo === filterTipo;
 
+    const matchesOrigem =
+      filterOrigem === "all" || m.origem === filterOrigem;
+
     const matchesStart =
       !startDate || messageDate >= new Date(startDate);
 
@@ -31,19 +35,29 @@ export default function Dashboard() {
       !endDate ||
       messageDate <= new Date(`${endDate}T23:59:59`);
 
-    return matchesTipo && matchesStart && matchesEnd;
+    return (
+      matchesTipo &&
+      matchesOrigem &&
+      matchesStart &&
+      matchesEnd
+    );
   });
+
 
   return (
     <DashboardLayout>
-      <div className="flex flex-wrap gap-4 justify-between items-end mb-6">
-        <h2 className="text-lg font-semibold">
+      <div className="flex flex-wrap gap-6 items-end mb-6">
+        <h2 className="text-lg font-semibold mr-auto">
           Histórico de Mensagens
         </h2>
 
-        <div className="flex gap-2 flex-wrap">
+        {/* Tipo */}
+        <div className="flex flex-col text-sm">
+          <label className="text-gray-500 mb-1">
+            Tipo de mensagem
+          </label>
           <select
-            className="border rounded px-3 py-2 text-sm"
+            className="border rounded px-3 py-2"
             value={filterTipo}
             onChange={(e) => setFilterTipo(e.target.value)}
           >
@@ -53,22 +67,51 @@ export default function Dashboard() {
             <option value="lanche">Lanche</option>
             <option value="jantar">Jantar</option>
           </select>
+        </div>
 
+        {/* Origem */}
+        <div className="flex flex-col text-sm">
+          <label className="text-gray-500 mb-1">
+            Origem
+          </label>
+          <select
+            className="border rounded px-3 py-2"
+            value={filterOrigem}
+            onChange={(e) => setFilterOrigem(e.target.value)}
+          >
+            <option value="all">Todas</option>
+            <option value="api">API</option>
+            <option value="scheduler">Scheduler</option>
+          </select>
+        </div>
+
+        {/* Data inicial */}
+        <div className="flex flex-col text-sm">
+          <label className="text-gray-500 mb-1">
+            Data inicial
+          </label>
           <input
             type="date"
-            className="border rounded px-3 py-2 text-sm"
+            className="border rounded px-3 py-2"
             value={startDate}
             onChange={(e) => setStartDate(e.target.value)}
           />
+        </div>
 
+        {/* Data final */}
+        <div className="flex flex-col text-sm">
+          <label className="text-gray-500 mb-1">
+            Data final
+          </label>
           <input
             type="date"
-            className="border rounded px-3 py-2 text-sm"
+            className="border rounded px-3 py-2"
             value={endDate}
             onChange={(e) => setEndDate(e.target.value)}
           />
         </div>
       </div>
+
 
       {loading ? (
         <div className="text-center py-10 text-gray-500">
