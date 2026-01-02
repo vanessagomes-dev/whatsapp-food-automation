@@ -1,11 +1,15 @@
-export default function Header() {
+export function Header() {
   return (
-    <header className="bg-white border-b px-6 py-4 flex justify-between items-center">
-      <h1 className="text-xl font-semibold">Dashboard</h1>
+    <header className="bg-slate-900 text-white px-6 py-4 shadow">
+      <div className="max-w-7xl mx-auto flex justify-between items-center">
+        <h1 className="text-xl font-semibold">
+          WhatsApp Food Automation
+        </h1>
 
-      <span className="text-sm text-gray-500">
-        Modo: <strong className="text-green-600">Mock</strong>
-      </span>
+        <span className="text-sm text-slate-300">
+          Dashboard • MVP
+        </span>
+      </div>
     </header>
   );
 }
