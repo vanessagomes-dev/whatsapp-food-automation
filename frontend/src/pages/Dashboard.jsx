@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import DashboardLayout from "../layouts/DashboardLayout";
 import { fetchHistory } from "../services/history";
 import StatusBadge from "../components/StatusBadge";
-import EmptyState from "../components/EmptyState";
+import StatCard from "../components/StatCard";
 
 export default function Dashboard() {
   const [messages, setMessages] = useState([]);
@@ -13,112 +13,149 @@ export default function Dashboard() {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
 
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+
   useEffect(() => {
     fetchHistory()
       .then(setMessages)
       .finally(() => setLoading(false));
   }, []);
 
+  // --------------------
+  // Filtros
+  // --------------------
   const filteredMessages = messages.filter((m) => {
     const messageDate = new Date(m.timestamp);
 
-    const matchesTipo =
-      filterTipo === "all" || m.tipo === filterTipo;
+    if (filterTipo !== "all" && m.tipo !== filterTipo) return false;
+    if (filterOrigem !== "all" && m.origem !== filterOrigem) return false;
 
-    const matchesOrigem =
-      filterOrigem === "all" || m.origem === filterOrigem;
+    if (startDate && messageDate < new Date(startDate)) return false;
+    if (endDate && messageDate > new Date(endDate + "T23:59:59"))
+      return false;
 
-    const matchesStart =
-      !startDate || messageDate >= new Date(startDate);
-
-    const matchesEnd =
-      !endDate ||
-      messageDate <= new Date(`${endDate}T23:59:59`);
-
-    return (
-      matchesTipo &&
-      matchesOrigem &&
-      matchesStart &&
-      matchesEnd
-    );
+    return true;
   });
 
+  // --------------------
+  // KPIs
+  // --------------------
+  const total = messages.length;
+  const totalApi = messages.filter((m) => m.origem === "api").length;
+  const totalScheduler = messages.filter(
+    (m) => m.origem === "scheduler"
+  ).length;
+
+  const today = new Date().toDateString();
+  const todayCount = messages.filter(
+    (m) => new Date(m.timestamp).toDateString() === today
+  ).length;
+
+  // --------------------
+  // Paginação
+  // --------------------
+  const totalPages = Math.ceil(
+    filteredMessages.length / itemsPerPage
+  );
+
+  const paginatedMessages = filteredMessages.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
 
   return (
     <DashboardLayout>
-      <div className="flex flex-wrap gap-6 items-end mb-6">
-        <h2 className="text-lg font-semibold mr-auto">
-          Histórico de Mensagens
-        </h2>
+      {/* KPIs */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <StatCard title="Total de mensagens" value={total} />
+        <StatCard title="Via API" value={totalApi} />
+        <StatCard title="Via Scheduler" value={totalScheduler} />
+        <StatCard title="Hoje" value={todayCount} />
+      </div>
 
-        {/* Tipo */}
-        <div className="flex flex-col text-sm">
-          <label className="text-gray-500 mb-1">
-            Tipo de mensagem
-          </label>
-          <select
-            className="border rounded px-3 py-2"
-            value={filterTipo}
-            onChange={(e) => setFilterTipo(e.target.value)}
-          >
-            <option value="all">Todos</option>
-            <option value="cafe">Café</option>
-            <option value="almoco">Almoço</option>
-            <option value="lanche">Lanche</option>
-            <option value="jantar">Jantar</option>
-          </select>
-        </div>
+      {/* Filtros */}
+      <div className="bg-white rounded-lg shadow p-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          <div>
+            <label className="block text-sm font-medium mb-1">
+              Tipo de mensagem
+            </label>
+            <select
+              className="w-full border rounded px-3 py-2 pr-8 text-sm"
+              value={filterTipo}
+              onChange={(e) => {
+                setFilterTipo(e.target.value);
+                setCurrentPage(1);
+              }}
+            >
+              <option value="all">Todos</option>
+              <option value="cafe">Café da Manhã</option>
+              <option value="almoco">Almoço</option>
+              <option value="lanche">Lanche</option>
+              <option value="jantar">Jantar</option>
+            </select>
+          </div>
 
-        {/* Origem */}
-        <div className="flex flex-col text-sm">
-          <label className="text-gray-500 mb-1">
-            Origem
-          </label>
-          <select
-            className="border rounded px-3 py-2"
-            value={filterOrigem}
-            onChange={(e) => setFilterOrigem(e.target.value)}
-          >
-            <option value="all">Todas</option>
-            <option value="api">API</option>
-            <option value="scheduler">Scheduler</option>
-          </select>
-        </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">
+              Origem
+            </label>
+            <select
+              className="w-full border rounded px-3 py-2 pr-8 text-sm"
+              value={filterOrigem}
+              onChange={(e) => {
+                setFilterOrigem(e.target.value);
+                setCurrentPage(1);
+              }}
+            >
+              <option value="all">Todas</option>
+              <option value="api">API</option>
+              <option value="scheduler">Scheduler</option>
+            </select>
+          </div>
 
-        {/* Data inicial */}
-        <div className="flex flex-col text-sm">
-          <label className="text-gray-500 mb-1">
-            Data inicial
-          </label>
-          <input
-            type="date"
-            className="border rounded px-3 py-2"
-            value={startDate}
-            onChange={(e) => setStartDate(e.target.value)}
-          />
-        </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">
+              Data inicial
+            </label>
+            <input
+              type="date"
+              className="w-full border rounded px-3 py-2 text-sm"
+              value={startDate}
+              onChange={(e) => {
+                setStartDate(e.target.value);
+                setCurrentPage(1);
+              }}
+            />
+          </div>
 
-        {/* Data final */}
-        <div className="flex flex-col text-sm">
-          <label className="text-gray-500 mb-1">
-            Data final
-          </label>
-          <input
-            type="date"
-            className="border rounded px-3 py-2"
-            value={endDate}
-            onChange={(e) => setEndDate(e.target.value)}
-          />
+          <div>
+            <label className="block text-sm font-medium mb-1">
+              Data final
+            </label>
+            <input
+              type="date"
+              className="w-full border rounded px-3 py-2 text-sm"
+              value={endDate}
+              onChange={(e) => {
+                setEndDate(e.target.value);
+                setCurrentPage(1);
+              }}
+            />
+          </div>
         </div>
       </div>
 
-
+      {/* Tabela */}
       {loading ? (
         <div className="text-center py-10 text-gray-500">
           Carregando dados...
         </div>
-      ) : filteredMessages.length === 0 ? (
-        <EmptyState message="Nenhuma mensagem encontrada" />
+      ) : paginatedMessages.length === 0 ? (
+        <div className="text-center py-10 text-gray-500">
+          Nenhuma mensagem encontrada com os filtros atuais.
+        </div>
       ) : (
         <div className="overflow-x-auto bg-white rounded-lg shadow">
           <table className="min-w-full text-sm">
@@ -133,7 +170,7 @@ export default function Dashboard() {
             </thead>
 
             <tbody>
-              {filteredMessages.map((item, index) => (
+              {paginatedMessages.map((item, index) => (
                 <tr
                   key={index}
                   className="border-t hover:bg-slate-50"
@@ -157,6 +194,39 @@ export default function Dashboard() {
               ))}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {/* Paginação */}
+      {!loading && filteredMessages.length > 0 && (
+        <div className="flex justify-between items-center mt-6 text-sm">
+          <span className="text-gray-500">
+            Página {currentPage} de {totalPages}
+          </span>
+
+          <div className="space-x-2">
+            <button
+              disabled={currentPage === 1}
+              onClick={() =>
+                setCurrentPage((p) => Math.max(p - 1, 1))
+              }
+              className="px-3 py-1 border rounded disabled:opacity-50"
+            >
+              Anterior
+            </button>
+
+            <button
+              disabled={currentPage === totalPages}
+              onClick={() =>
+                setCurrentPage((p) =>
+                  Math.min(p + 1, totalPages)
+                )
+              }
+              className="px-3 py-1 border rounded disabled:opacity-50"
+            >
+              Próxima
+            </button>
+          </div>
         </div>
       )}
     </DashboardLayout>
