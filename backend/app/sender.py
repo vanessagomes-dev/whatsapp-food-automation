@@ -1,51 +1,27 @@
 from datetime import datetime
-from typing import Optional
 
-from .config import WHATSAPP_GROUP_ID
+from .config import WHATSAPP_GROUP_ID, TEST_MODE
 from .messages import montar_mensagem
 from .whatsapp_factory import get_whatsapp_client
+from .storage import save_message
 
 
 def enviar_mensagem(
-    tipo: Optional[str] = None,
-    destinatario: Optional[str] = None,
-    mensagem: Optional[str] = None,
-    imagem: Optional[str] = None,
+    tipo: str,
+    origem: str = "scheduler",
 ) -> None:
     """
-    Envia mensagem via WhatsApp (mock ou prod).
-
-    - Usado pelo scheduler (por tipo)
-    - Usado pela API (mensagem direta)
+    Envia uma mensagem via WhatsApp (mock ou prod)
+    e registra o envio no storage.
     """
 
     agora = datetime.now().strftime("%H:%M:%S")
-    print(f"[SENDER] Disparo de mensagem | tipo={tipo}")
+    print(f"[SENDER] Disparo de mensagem tipo: {tipo}")
 
     client = get_whatsapp_client()
 
-    # 🔹 Fluxo API (mensagem direta)
-    if mensagem and destinatario:
-        client.send_message(
-            group_id=destinatario,
-            message=mensagem,
-            image_path=imagem,
-        )
-
-        print("=" * 60)
-        print(f"[{agora}] ENVIO WHATSAPP ({type(client).__name__})")
-        print(f"Mensagem enviada: {mensagem}")
-        print(f"Destino: {destinatario}")
-        print("Status: ENVIADO (api)")
-        print("=" * 60)
-        return
-
-    # 🔹 Fluxo Scheduler
-    if not tipo:
-        raise ValueError("Tipo de mensagem não informado")
-
     if tipo == "teste_now":
-        mensagem = "🚀 TESTE NOW — Automação WhatsApp em ambiente MOCK"
+        mensagem = "🚀 TESTE NOW — Automação WhatsApp"
         imagem = "teste_now.jpg"
     else:
         mensagem, imagem = montar_mensagem(tipo)
@@ -56,9 +32,22 @@ def enviar_mensagem(
         image_path=imagem,
     )
 
+    # Persistência do envio
+    save_message(
+        {
+            "tipo": tipo,
+            "mensagem": mensagem,
+            "imagem": imagem,
+            "grupo": WHATSAPP_GROUP_ID,
+            "origem": origem,
+            "modo": "mock" if TEST_MODE else "prod",
+        }
+    )
+
     print("=" * 60)
     print(f"[{agora}] ENVIO WHATSAPP ({type(client).__name__})")
     print(f"Mensagem enviada: {mensagem}")
     print(f"Grupo destino: {WHATSAPP_GROUP_ID}")
-    print("Status: ENVIADO (scheduler)")
+    print(f"Origem: {origem}")
+    print("Status: ENVIADO")
     print("=" * 60)

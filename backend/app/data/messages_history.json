@@ -1,0 +1,11 @@
+[
+  {
+    "tipo": "teste_now",
+    "mensagem": "🚀 TESTE NOW — Automação WhatsApp",
+    "imagem": "teste_now.jpg",
+    "grupo": "GROUP_MOCK_123",
+    "origem": "scheduler",
+    "modo": "mock",
+    "timestamp": "2026-01-02T13:04:04.913676"
+  }
+]
