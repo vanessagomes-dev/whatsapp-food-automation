@@ -1,8 +1,9 @@
-import MessagesByTypeChart from "../components/MessagesByTypeChart";
-import MessagesByOriginChart from "../components/MessagesByOriginChart";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import DashboardLayout from "../layouts/DashboardLayout";
 import { fetchHistory } from "../services/history";
+
+import MessagesByTypeChart from "../components/MessagesByTypeChart";
+import MessagesByOriginChart from "../components/MessagesByOriginChart";
 import StatusBadge from "../components/StatusBadge";
 import StatCard from "../components/StatCard";
 
@@ -10,12 +11,14 @@ export default function Dashboard() {
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  // filtros
   const [filterTipo, setFilterTipo] = useState("all");
-  const [searchText, setSearchText] = useState("");
   const [filterOrigem, setFilterOrigem] = useState("all");
+  const [searchText, setSearchText] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
 
+  // paginação
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
@@ -25,35 +28,47 @@ export default function Dashboard() {
       .finally(() => setLoading(false));
   }, []);
 
-
   // --------------------
-  // Filtros
+  // Filtros aplicados
   // --------------------
-  const filteredMessages = messages.filter((msg) => {
-    const matchTipo =
-      filterTipo === "all" || msg.tipo === filterTipo;
+  const filteredMessages = useMemo(() => {
+    return messages.filter((msg) => {
+      const matchTipo =
+        filterTipo === "all" || msg.tipo === filterTipo;
 
-    const matchSearch =
-      msg.mensagem
-        .toLowerCase()
-        .includes(searchText.toLowerCase());
+      const matchOrigem =
+        filterOrigem === "all" || msg.origem === filterOrigem;
 
-    return matchTipo && matchSearch;
-  });
+      const matchSearch =
+        msg.mensagem
+          ?.toLowerCase()
+          .includes(searchText.toLowerCase());
 
+      const msgDate = new Date(msg.timestamp);
 
-  const originChartData = Object.values(
-  filteredMessages.reduce((acc, msg) => {
-    if (!acc[msg.origem]) {
-      acc[msg.origem] = {
-        origem: msg.origem,
-        total: 0,
-      };
-    }
-    acc[msg.origem].total += 1;
-    return acc;
-  }, {})
-);
+      const matchStartDate =
+        !startDate || msgDate >= new Date(startDate);
+
+      const matchEndDate =
+        !endDate ||
+        msgDate <= new Date(`${endDate}T23:59:59`);
+
+      return (
+        matchTipo &&
+        matchOrigem &&
+        matchSearch &&
+        matchStartDate &&
+        matchEndDate
+      );
+    });
+  }, [
+    messages,
+    filterTipo,
+    filterOrigem,
+    searchText,
+    startDate,
+    endDate,
+  ]);
 
   // --------------------
   // KPIs
@@ -70,20 +85,33 @@ export default function Dashboard() {
   ).length;
 
   // --------------------
-  // Dados para o gráfico
+  // Gráficos
   // --------------------
-  const chartData = Object.values(
-    filteredMessages.reduce((acc, msg) => {
-      if (!acc[msg.tipo]) {
-        acc[msg.tipo] = {
+  const chartByType = useMemo(() => {
+    return Object.values(
+      filteredMessages.reduce((acc, msg) => {
+        acc[msg.tipo] = acc[msg.tipo] || {
           tipo: msg.tipo,
           total: 0,
         };
-      }
-      acc[msg.tipo].total += 1;
-      return acc;
-    }, {})
-  );
+        acc[msg.tipo].total += 1;
+        return acc;
+      }, {})
+    );
+  }, [filteredMessages]);
+
+  const chartByOrigin = useMemo(() => {
+    return Object.values(
+      filteredMessages.reduce((acc, msg) => {
+        acc[msg.origem] = acc[msg.origem] || {
+          origem: msg.origem,
+          total: 0,
+        };
+        acc[msg.origem].total += 1;
+        return acc;
+      }, {})
+    );
+  }, [filteredMessages]);
 
   // --------------------
   // Paginação
@@ -107,19 +135,21 @@ export default function Dashboard() {
         <StatCard title="Hoje" value={todayCount} />
       </div>
 
-      {/* Gráfico de mensagens por tipo */}
-      <MessagesByTypeChart data={chartData} />
-      <MessagesByOriginChart data={originChartData} />
+      {/* Gráficos */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <MessagesByTypeChart data={chartByType} />
+        <MessagesByOriginChart data={chartByOrigin} />
+      </div>
 
       {/* Filtros */}
-      <div className="bg-white rounded-lg shadow p-6 mb-8">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      <div className="bg-white rounded-lg shadow p-6 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
           <div>
-            <label className="block text-sm font-medium mb-1">
+            <label className="text-xs text-gray-500 mb-1 block">
               Tipo de mensagem
             </label>
             <select
-              className="w-full border rounded px-3 py-2 pr-8 text-sm"
+              className="w-full border rounded px-3 py-2 text-sm"
               value={filterTipo}
               onChange={(e) => {
                 setFilterTipo(e.target.value);
@@ -127,7 +157,7 @@ export default function Dashboard() {
               }}
             >
               <option value="all">Todos</option>
-              <option value="cafe">Café da Manhã</option>
+              <option value="cafe">Café</option>
               <option value="almoco">Almoço</option>
               <option value="lanche">Lanche</option>
               <option value="jantar">Jantar</option>
@@ -135,11 +165,11 @@ export default function Dashboard() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-1">
+            <label className="text-xs text-gray-500 mb-1 block">
               Origem
             </label>
             <select
-              className="w-full border rounded px-3 py-2 pr-8 text-sm"
+              className="w-full border rounded px-3 py-2 text-sm"
               value={filterOrigem}
               onChange={(e) => {
                 setFilterOrigem(e.target.value);
@@ -152,24 +182,24 @@ export default function Dashboard() {
             </select>
           </div>
 
-          <div className="flex flex-wrap gap-4 mb-6">
-            <div className="flex flex-col">
-              <label className="text-xs text-gray-500 mb-1">
-                Buscar mensagem
-              </label>
-              <input
-                type="text"
-                placeholder="Digite parte da mensagem..."
-                value={searchText}
-                onChange={(e) => setSearchText(e.target.value)}
-                className="border rounded px-3 py-2 text-sm w-64"
-              />
-            </div>
+          <div>
+            <label className="text-xs text-gray-500 mb-1 block">
+              Buscar mensagem
+            </label>
+            <input
+              type="text"
+              className="w-full border rounded px-3 py-2 text-sm"
+              placeholder="Digite parte da mensagem..."
+              value={searchText}
+              onChange={(e) => {
+                setSearchText(e.target.value);
+                setCurrentPage(1);
+              }}
+            />
           </div>
 
-
           <div>
-            <label className="block text-sm font-medium mb-1">
+            <label className="text-xs text-gray-500 mb-1 block">
               Data inicial
             </label>
             <input
@@ -184,7 +214,7 @@ export default function Dashboard() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-1">
+            <label className="text-xs text-gray-500 mb-1 block">
               Data final
             </label>
             <input
@@ -207,7 +237,7 @@ export default function Dashboard() {
         </div>
       ) : paginatedMessages.length === 0 ? (
         <div className="text-center py-10 text-gray-500">
-          Nenhuma mensagem encontrada com os filtros atuais.
+          Nenhuma mensagem encontrada.
         </div>
       ) : (
         <div className="overflow-x-auto bg-white rounded-lg shadow">
@@ -221,7 +251,6 @@ export default function Dashboard() {
                 <th className="px-4 py-3 text-left">Modo</th>
               </tr>
             </thead>
-
             <tbody>
               {paginatedMessages.map((item, index) => (
                 <tr
