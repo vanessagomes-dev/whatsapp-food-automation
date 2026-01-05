@@ -1,3 +1,4 @@
+import MessagesByTypeChart from "../components/MessagesByTypeChart";
 import { useEffect, useState } from "react";
 import DashboardLayout from "../layouts/DashboardLayout";
 import { fetchHistory } from "../services/history";
@@ -21,6 +22,7 @@ export default function Dashboard() {
       .then(setMessages)
       .finally(() => setLoading(false));
   }, []);
+
 
   // --------------------
   // Filtros
@@ -53,6 +55,22 @@ export default function Dashboard() {
   ).length;
 
   // --------------------
+  // Dados para o gráfico
+  // --------------------
+  const chartData = Object.values(
+    filteredMessages.reduce((acc, msg) => {
+      if (!acc[msg.tipo]) {
+        acc[msg.tipo] = {
+          tipo: msg.tipo,
+          total: 0,
+        };
+      }
+      acc[msg.tipo].total += 1;
+      return acc;
+    }, {})
+  );
+
+  // --------------------
   // Paginação
   // --------------------
   const totalPages = Math.ceil(
@@ -73,6 +91,9 @@ export default function Dashboard() {
         <StatCard title="Via Scheduler" value={totalScheduler} />
         <StatCard title="Hoje" value={todayCount} />
       </div>
+      
+      {/* Gráfico de mensagens por tipo */}
+      <MessagesByTypeChart data={chartData} />;
 
       {/* Filtros */}
       <div className="bg-white rounded-lg shadow p-6 mb-8">
