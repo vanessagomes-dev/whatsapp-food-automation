@@ -1,4 +1,5 @@
 import MessagesByTypeChart from "../components/MessagesByTypeChart";
+import MessagesByOriginChart from "../components/MessagesByOriginChart";
 import { useEffect, useState } from "react";
 import DashboardLayout from "../layouts/DashboardLayout";
 import { fetchHistory } from "../services/history";
@@ -10,6 +11,7 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
 
   const [filterTipo, setFilterTipo] = useState("all");
+  const [searchText, setSearchText] = useState("");
   const [filterOrigem, setFilterOrigem] = useState("all");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
@@ -27,18 +29,31 @@ export default function Dashboard() {
   // --------------------
   // Filtros
   // --------------------
-  const filteredMessages = messages.filter((m) => {
-    const messageDate = new Date(m.timestamp);
+  const filteredMessages = messages.filter((msg) => {
+    const matchTipo =
+      filterTipo === "all" || msg.tipo === filterTipo;
 
-    if (filterTipo !== "all" && m.tipo !== filterTipo) return false;
-    if (filterOrigem !== "all" && m.origem !== filterOrigem) return false;
+    const matchSearch =
+      msg.mensagem
+        .toLowerCase()
+        .includes(searchText.toLowerCase());
 
-    if (startDate && messageDate < new Date(startDate)) return false;
-    if (endDate && messageDate > new Date(endDate + "T23:59:59"))
-      return false;
-
-    return true;
+    return matchTipo && matchSearch;
   });
+
+
+  const originChartData = Object.values(
+  filteredMessages.reduce((acc, msg) => {
+    if (!acc[msg.origem]) {
+      acc[msg.origem] = {
+        origem: msg.origem,
+        total: 0,
+      };
+    }
+    acc[msg.origem].total += 1;
+    return acc;
+  }, {})
+);
 
   // --------------------
   // KPIs
@@ -91,9 +106,10 @@ export default function Dashboard() {
         <StatCard title="Via Scheduler" value={totalScheduler} />
         <StatCard title="Hoje" value={todayCount} />
       </div>
-      
+
       {/* Gráfico de mensagens por tipo */}
-      <MessagesByTypeChart data={chartData} />;
+      <MessagesByTypeChart data={chartData} />
+      <MessagesByOriginChart data={originChartData} />
 
       {/* Filtros */}
       <div className="bg-white rounded-lg shadow p-6 mb-8">
@@ -135,6 +151,22 @@ export default function Dashboard() {
               <option value="scheduler">Scheduler</option>
             </select>
           </div>
+
+          <div className="flex flex-wrap gap-4 mb-6">
+            <div className="flex flex-col">
+              <label className="text-xs text-gray-500 mb-1">
+                Buscar mensagem
+              </label>
+              <input
+                type="text"
+                placeholder="Digite parte da mensagem..."
+                value={searchText}
+                onChange={(e) => setSearchText(e.target.value)}
+                className="border rounded px-3 py-2 text-sm w-64"
+              />
+            </div>
+          </div>
+
 
           <div>
             <label className="block text-sm font-medium mb-1">
