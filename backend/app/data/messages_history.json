@@ -7,5 +7,23 @@
     "origem": "scheduler",
     "modo": "mock",
     "timestamp": "2026-01-02T13:04:04.913676"
+  },
+  {
+    "tipo": "teste_now",
+    "mensagem": "🚀 TESTE NOW — Automação WhatsApp",
+    "imagem": "teste_now.jpg",
+    "grupo": "GROUP_MOCK_123",
+    "origem": "scheduler",
+    "modo": "mock",
+    "timestamp": "2026-01-06T21:10:24.664937"
+  },
+  {
+    "tipo": "teste_now",
+    "mensagem": "🚀 TESTE NOW — Automação WhatsApp",
+    "imagem": "teste_now.jpg",
+    "grupo": "GROUP_MOCK_123",
+    "origem": "api",
+    "modo": "mock",
+    "timestamp": "2026-01-06T21:11:09.800344"
   }
 ]

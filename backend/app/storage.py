@@ -1,7 +1,7 @@
 import json
 from datetime import datetime
 from pathlib import Path
-from typing import Optional, List
+from typing import Optional
 
 
 DATA_DIR = Path(__file__).parent / "data"
@@ -29,20 +29,31 @@ def load_messages(
     tipo: Optional[str] = None,
     origem: Optional[str] = None,
     modo: Optional[str] = None,
-) -> List[dict]:
+    skip: int = 0,
+    limit: int = 10,
+) -> dict:  # Mudamos para retornar um dicionário com metadados
     if not FILE_PATH.exists():
-        return []
+        return {"total": 0, "items": []}
 
     with open(FILE_PATH, "r", encoding="utf-8") as f:
         data = json.load(f)
 
+    # Inverter para que as mensagens mais recentes apareçam primeiro
+    data.reverse()
+
     def filtro(mensagem: dict) -> bool:
-        if tipo and mensagem["tipo"] != tipo:
+        if tipo and tipo != "all" and mensagem["tipo"] != tipo:
             return False
-        if origem and mensagem["origem"] != origem:
+        if origem and origem != "all" and mensagem["origem"] != origem:
             return False
         if modo and mensagem["modo"] != modo:
             return False
         return True
 
-    return list(filter(filtro, data))
+    filtered_data = list(filter(filtro, data))
+    total = len(filtered_data)
+
+    # Aplicar paginação
+    paginated_items = filtered_data[skip: skip + limit]
+
+    return {"total": total, "items": paginated_items}

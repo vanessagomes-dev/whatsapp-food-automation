@@ -60,16 +60,22 @@ def get_history(
 # --------------------
 
 
-@app.get(
-    "/history",
-    response_model=List[MessageHistoryResponse],
-)
+@app.get("/history")
 def get_history_alias(
     tipo: Optional[str] = Query(None),
     origem: Optional[str] = Query(None),
     modo: Optional[str] = Query(None),
+    page: int = Query(1, ge=1),
+    limit: int = Query(10, ge=1)
 ):
-    return load_messages(tipo=tipo, origem=origem, modo=modo)
+    skip = (page - 1) * limit
+    return load_messages(
+        tipo=tipo,
+        origem=origem,
+        modo=modo,
+        skip=skip,
+        limit=limit
+    )
 
 # --------------------
 # Envio manual (teste)

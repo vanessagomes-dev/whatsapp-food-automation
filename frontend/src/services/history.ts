@@ -10,7 +10,24 @@ export interface MessageHistory {
   timestamp: string;
 }
 
-export async function fetchHistory() {
-  const response = await api.get<MessageHistory[]>("/history");
+export interface HistoryResponse {
+  total: number;
+  items: MessageHistory[];
+}
+
+export async function fetchHistory(page = 1, limit = 10, tipo?: string, origem?: string) {
+  const response = await api.get<HistoryResponse>("/history", {
+    params: {
+      page,
+      limit,
+      tipo: tipo === 'all' ? undefined : tipo,
+      origem: origem === 'all' ? undefined : origem
+    }
+  });
+  return response.data;
+}
+
+export async function sendTestMessage() {
+  const response = await api.post("/v1/send/test-now");
   return response.data;
 }
