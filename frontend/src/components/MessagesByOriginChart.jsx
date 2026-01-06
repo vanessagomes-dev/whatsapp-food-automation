@@ -4,48 +4,48 @@ import {
   Tooltip,
   ResponsiveContainer,
   Cell,
+  Legend
 } from "recharts";
 
 const COLORS = {
-  api: "#22c55e",
-  scheduler: "#3b82f6",
+  API: "#6366f1",      
+  SCHEDULER: "#f97316", 
+  OUTROS: "#94a3b8"
 };
 
 export default function MessagesByOriginChart({ data }) {
   if (!data || data.length === 0) {
     return (
-      <div className="text-center text-gray-500 py-10">
+      <div className="flex items-center justify-center h-full text-slate-400 text-sm italic">
         Sem dados para exibir
       </div>
     );
   }
 
   return (
-    <div className="bg-white rounded-lg shadow p-6 mb-8">
-      <h3 className="text-sm font-semibold mb-4">
-        Mensagens por origem
-      </h3>
-
-      <div className="w-full h-64">
-        <ResponsiveContainer>
-          <PieChart>
-            <Pie
-              data={data}
-              dataKey="total"
-              nameKey="origem"
-              label
-            >
-              {data.map((entry) => (
-                <Cell
-                  key={entry.origem}
-                  fill={COLORS[entry.origem] || "#64748b"}
-                />
-              ))}
-            </Pie>
-            <Tooltip />
-          </PieChart>
-        </ResponsiveContainer>
-      </div>
-    </div>
+    <ResponsiveContainer width="100%" height="100%">
+      <PieChart>
+        <Pie
+          data={data}
+          dataKey="value"
+          nameKey="name"
+          innerRadius={60}
+          outerRadius={80}
+          paddingAngle={5}
+          label
+        >
+          {data.map((entry, index) => (
+            <Cell 
+              key={`cell-${index}`} 
+              fill={COLORS[entry.name] || COLORS.OUTROS} 
+            />
+          ))}
+        </Pie>
+        <Tooltip 
+          contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+        />
+        <Legend verticalAlign="bottom" height={36} />
+      </PieChart>
+    </ResponsiveContainer>
   );
 }
