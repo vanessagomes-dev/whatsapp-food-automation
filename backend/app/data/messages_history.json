@@ -25,5 +25,14 @@
     "origem": "api",
     "modo": "mock",
     "timestamp": "2026-01-06T21:11:09.800344"
+  },
+  {
+    "tipo": "teste_now",
+    "mensagem": "🚀 TESTE NOW — Automação WhatsApp",
+    "imagem": "teste_now.jpg",
+    "grupo": "GROUP_MOCK_123",
+    "origem": "api",
+    "modo": "mock",
+    "timestamp": "2026-01-06T23:49:38.253275"
   }
 ]
