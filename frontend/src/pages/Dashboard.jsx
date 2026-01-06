@@ -79,7 +79,7 @@ export default function Dashboard() {
   // 4. KPIs
   const totalApi = useMemo(() => messages.filter((m) => m.origem === "api").length, [messages]);
   const totalScheduler = useMemo(() => messages.filter((m) => m.origem === "scheduler").length, [messages]);
-  
+
   const handleTestSend = async () => {
     const loadingToast = toast.loading("Enviando mensagem de teste...");
     try {
@@ -97,6 +97,17 @@ export default function Dashboard() {
   };
 
   const totalPages = Math.ceil(totalItems / itemsPerPage);
+
+  // 5. Limpar Filtros
+  const handleClearFilters = () => {
+    setFilterTipo("all");
+    setFilterOrigem("all");
+    setSearchText("");
+    setStartDate("");
+    setEndDate("");
+    setCurrentPage(1);
+    toast.success("Filtros limpos!");
+  };
 
   return (
     <DashboardLayout>
@@ -123,7 +134,7 @@ export default function Dashboard() {
         <StatCard title="Filtrados (pág)" value={filteredMessages.length} color="green" />
       </div>
 
-      {/* Seção de Gráficos (CORREÇÃO DE ALTURA) */}
+      {/* Seção de Gráficos */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
         <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm h-[350px]">
           <h3 className="text-sm font-bold text-slate-700 mb-4">Mensagens por Tipo</h3>
@@ -139,13 +150,30 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Filtros */}
+      {/* Seção de Filtros */}
       <div className="bg-slate-50 rounded-2xl p-6 border border-slate-200 mb-6">
+        {/* Cabeçalho dos Filtros com Botão de Reset */}
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-sm font-bold text-slate-700 uppercase tracking-tight">Filtros de Busca</h3>
+
+          {/* Botão de Limpar (Exibição condicional) */}
+          {(filterTipo !== "all" || filterOrigem !== "all" || searchText || startDate || endDate) && (
+            <button
+              onClick={handleClearFilters}
+              className="text-xs font-bold text-indigo-600 hover:text-indigo-800 transition-colors flex items-center gap-1 bg-indigo-50 px-3 py-1 rounded-full shadow-sm"
+            >
+              <span>✕</span> Limpar Filtros
+            </button>
+          )}
+        </div>
+
+        {/* Grid de Inputs */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+          {/* Tipo */}
           <div className="space-y-1">
             <label className="text-[10px] font-bold text-slate-400 uppercase ml-1">Tipo</label>
             <select
-              className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
+              className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none transition-all shadow-sm"
               value={filterTipo}
               onChange={(e) => { setFilterTipo(e.target.value); setCurrentPage(1); }}
             >
@@ -156,10 +184,12 @@ export default function Dashboard() {
               <option value="jantar">🥗 Jantar</option>
             </select>
           </div>
+
+          {/* Origem */}
           <div className="space-y-1">
             <label className="text-[10px] font-bold text-slate-400 uppercase ml-1">Origem</label>
             <select
-              className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
+              className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none transition-all shadow-sm"
               value={filterOrigem}
               onChange={(e) => { setFilterOrigem(e.target.value); setCurrentPage(1); }}
             >
@@ -168,23 +198,39 @@ export default function Dashboard() {
               <option value="scheduler">Scheduler</option>
             </select>
           </div>
+
+          {/* Busca por Mensagem */}
           <div className="space-y-1">
             <label className="text-[10px] font-bold text-slate-400 uppercase ml-1">Busca por mensagem</label>
             <input
               type="text"
-              className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
-              placeholder="Digite..."
+              className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none transition-all shadow-sm"
+              placeholder="Digite algo..."
               value={searchText}
               onChange={(e) => setSearchText(e.target.value)}
             />
           </div>
+
+          {/* Data Início */}
           <div className="space-y-1">
             <label className="text-[10px] font-bold text-slate-400 uppercase ml-1">Início</label>
-            <input type="date" className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-sm" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
+            <input
+              type="date"
+              className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-sm shadow-sm"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+            />
           </div>
+
+          {/* Data Fim */}
           <div className="space-y-1">
             <label className="text-[10px] font-bold text-slate-400 uppercase ml-1">Fim</label>
-            <input type="date" className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-sm" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
+            <input
+              type="date"
+              className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-sm shadow-sm"
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+            />
           </div>
         </div>
       </div>
