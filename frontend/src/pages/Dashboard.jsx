@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
 import toast from 'react-hot-toast';
-import DashboardLayout from "../layouts/DashboardLayout";
 import { fetchHistory, sendTestMessage } from "../services/history";
 
 import MessagesByTypeChart from "../components/MessagesByTypeChart";
@@ -57,7 +56,7 @@ export default function Dashboard() {
     });
   }, [messages, searchText, startDate, endDate]);
 
-  // 3. Formatação de Dados para os Gráficos (RESOLVE O GRÁFICO EM BRANCO)
+  // 3. Formatação de Dados para os Gráficos
   const chartByTypeData = useMemo(() => {
     const counts = filteredMessages.reduce((acc, msg) => {
       const label = msg.tipo?.replace('_', ' ').toUpperCase() || "OUTROS";
@@ -110,7 +109,7 @@ export default function Dashboard() {
   };
 
   return (
-    <DashboardLayout>
+    <>
       {/* Header Modernizado */}
       <div className="bg-white border-b border-slate-200 py-5 px-6 mb-8 rounded-2xl shadow-sm flex flex-col md:flex-row justify-between items-center gap-4">
         <div>
@@ -148,11 +147,8 @@ export default function Dashboard() {
 
       {/* Seção de Filtros */}
       <div className="bg-slate-50 rounded-2xl p-6 border border-slate-200 mb-6">
-        {/* Cabeçalho dos Filtros com Botão de Reset */}
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-sm font-bold text-slate-700 uppercase tracking-tight">Filtros de Busca</h3>
-
-          {/* Botão de Limpar (Exibição condicional) */}
           {(filterTipo !== "all" || filterOrigem !== "all" || searchText || startDate || endDate) && (
             <button
               onClick={handleClearFilters}
@@ -163,9 +159,7 @@ export default function Dashboard() {
           )}
         </div>
 
-        {/* Grid de Inputs */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-          {/* Tipo */}
           <div className="space-y-1">
             <label className="text-[10px] font-bold text-slate-400 uppercase ml-1">Tipo</label>
             <select
@@ -181,7 +175,6 @@ export default function Dashboard() {
             </select>
           </div>
 
-          {/* Origem */}
           <div className="space-y-1">
             <label className="text-[10px] font-bold text-slate-400 uppercase ml-1">Origem</label>
             <select
@@ -195,7 +188,6 @@ export default function Dashboard() {
             </select>
           </div>
 
-          {/* Busca por Mensagem */}
           <div className="space-y-1">
             <label className="text-[10px] font-bold text-slate-400 uppercase ml-1">Busca por mensagem</label>
             <input
@@ -207,7 +199,6 @@ export default function Dashboard() {
             />
           </div>
 
-          {/* Data Início */}
           <div className="space-y-1">
             <label className="text-[10px] font-bold text-slate-400 uppercase ml-1">Início</label>
             <input
@@ -218,7 +209,6 @@ export default function Dashboard() {
             />
           </div>
 
-          {/* Data Fim */}
           <div className="space-y-1">
             <label className="text-[10px] font-bold text-slate-400 uppercase ml-1">Fim</label>
             <input
@@ -267,10 +257,22 @@ export default function Dashboard() {
       <div className="flex justify-between items-center mt-6 px-2">
         <p className="text-xs text-slate-500">Página {currentPage} de {totalPages || 1}</p>
         <div className="flex gap-2">
-          <button disabled={currentPage === 1} onClick={() => setCurrentPage(prev => prev - 1)} className="px-4 py-2 border rounded-xl text-xs disabled:opacity-30">Anterior</button>
-          <button disabled={currentPage === totalPages || totalPages === 0} onClick={() => setCurrentPage(prev => prev + 1)} className="px-4 py-2 bg-white border rounded-xl text-xs disabled:opacity-30">Próxima</button>
+          <button 
+            disabled={currentPage === 1} 
+            onClick={() => setCurrentPage(prev => prev - 1)} 
+            className="px-4 py-2 border rounded-xl text-xs disabled:opacity-30"
+          >
+            Anterior
+          </button>
+          <button 
+            disabled={currentPage === totalPages || totalPages === 0} 
+            onClick={() => setCurrentPage(prev => prev + 1)} 
+            className="px-4 py-2 bg-white border rounded-xl text-xs disabled:opacity-30"
+          >
+            Próxima
+          </button>
         </div>
       </div>
-    </DashboardLayout>
+    </>
   );
 }

@@ -1,5 +1,6 @@
 import { NavLink } from "react-router-dom";
 import { LayoutDashboard, History } from "lucide-react";
+import { Settings as SettingsIcon } from "lucide-react";
 
 export default function Sidebar() {
   // 1. Recuperamos os dados do usuário para validar o nível de acesso
@@ -8,10 +9,9 @@ export default function Sidebar() {
 
   // Estilo padrão para os links (limpo e moderno)
   const navLinkClass = ({ isActive }) =>
-    `flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 font-medium ${
-      isActive 
-        ? "bg-indigo-600 text-white shadow-lg shadow-indigo-900/40" 
-        : "text-slate-400 hover:bg-slate-800 hover:text-white"
+    `flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 font-medium ${isActive
+      ? "bg-indigo-600 text-white shadow-lg shadow-indigo-900/40"
+      : "text-slate-400 hover:bg-slate-800 hover:text-white"
     }`;
 
   return (
@@ -26,7 +26,7 @@ export default function Sidebar() {
 
       {/* Menu de Navegação Dinâmico */}
       <nav className="flex-1 p-4 space-y-2">
-        
+
         {/* Renderiza Dashboard APENAS se for Administrador */}
         {user.role === "admin" && (
           <NavLink to="/" className={navLinkClass}>
@@ -40,7 +40,13 @@ export default function Sidebar() {
           <History size={20} />
           <span>Histórico</span>
         </NavLink>
-        
+
+        {/* Configurações visível para todos os logados (ADM e Funcionário) */}
+        <NavLink to="/settings" className={navLinkClass}>
+          <SettingsIcon size={20} />
+          <span>Configurações</span>
+        </NavLink>
+
       </nav>
 
       {/* Rodapé da Sidebar com Assinatura */}

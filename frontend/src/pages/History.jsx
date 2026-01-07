@@ -3,7 +3,6 @@ import { Link } from "react-router-dom";
 import { fetchHistory } from "../services/history";
 import ExcelJS from "exceljs";
 import { saveAs } from "file-saver";
-import DashboardLayout from "../layouts/DashboardLayout";
 import StatusBadge from "../components/StatusBadge";
 import toast from 'react-hot-toast';
 
@@ -21,13 +20,13 @@ export default function History() {
     const loadHistory = async () => {
       try {
         setLoading(true);
-    
         const data = await fetchHistory(currentPage, itemsPerPage);
         if (isMounted) {
           setMessages(data.items || []);
           setTotalItems(data.total || 0);
         }
-      } catch {
+      } catch (err) {
+        console.error("Erro ao carregar histórico:", err);
         toast.error("Erro ao carregar dados.");
       } finally {
         if (isMounted) setLoading(false);
@@ -37,7 +36,6 @@ export default function History() {
     return () => { isMounted = false; };
   }, [currentPage]);
 
-  // Cálculo do total de páginas
   const totalPages = Math.ceil(totalItems / itemsPerPage);
 
   const filteredMessages = messages.filter((msg) => {
@@ -72,7 +70,7 @@ export default function History() {
   };
 
   return (
-    <DashboardLayout>
+    <>
       {/* Header */}
       <div className="bg-white border-b border-slate-200 py-5 px-6 mb-8 rounded-2xl shadow-sm flex flex-col md:flex-row justify-between items-center gap-4">
         <div>
@@ -87,7 +85,7 @@ export default function History() {
           disabled={filteredMessages.length === 0}
           className="bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white px-6 py-2.5 rounded-full text-sm font-bold transition-all shadow-md active:scale-95 flex items-center gap-2"
         >
-          📊 Exportar Excel
+          <span>📊 Exportar Excel</span>
         </button>
       </div>
 
@@ -124,50 +122,50 @@ export default function History() {
             <tbody className="divide-y divide-slate-100">
               {loading ? (
                 <tr><td colSpan="5" className="px-6 py-12 text-center text-slate-400 animate-pulse font-medium">Carregando dados...</td></tr>
-              ) : filteredMessages.map((msg, index) => (
-                <tr key={index} className="hover:bg-indigo-50/30 transition-colors">
-                  <td className="px-6 py-4 whitespace-nowrap text-slate-500">{new Date(msg.timestamp).toLocaleString()}</td>
-                  <td className="px-6 py-4 font-semibold text-slate-700">{msg.tipo?.replace('_', ' ')}</td>
-                  <td className="px-6 py-4 text-slate-600 max-w-xs truncate">{msg.mensagem}</td>
-                  <td className="px-6 py-4 text-center"><StatusBadge value={msg.origem} type="origem" /></td>
-                  <td className="px-6 py-4 text-center"><StatusBadge value={msg.modo || 'mock'} type="modo" /></td>
-                </tr>
-              ))}
+              ) : filteredMessages.length === 0 ? (
+                <tr><td colSpan="5" className="px-6 py-8 text-center text-slate-400">Nenhum dado encontrado.</td></tr>
+              ) : (
+                filteredMessages.map((msg, index) => (
+                  <tr key={index} className="hover:bg-indigo-50/30 transition-colors">
+                    <td className="px-6 py-4 whitespace-nowrap text-slate-500">{new Date(msg.timestamp).toLocaleString()}</td>
+                    <td className="px-6 py-4 font-semibold text-slate-700 capitalize">{msg.tipo?.replace('_', ' ')}</td>
+                    <td className="px-6 py-4 text-slate-600 italic">"{msg.mensagem}"</td>
+                    <td className="px-6 py-4 text-center"><StatusBadge value={msg.origem} type="origem" /></td>
+                    <td className="px-6 py-4 text-center"><StatusBadge value={msg.modo || 'mock'} type="modo" /></td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
       </div>
 
-      {/* Paginação */}
-      <div className="flex flex-col md:flex-row justify-between items-center mt-6 gap-4">
-        <div className="text-xs text-slate-500 font-medium bg-slate-100 px-3 py-1.5 rounded-lg border border-slate-200">
-          Página <span className="text-indigo-600 font-bold">{currentPage}</span> de {totalPages || 1}
-        </div>
-
-        <div className="flex items-center gap-2">
-          <button
-            disabled={currentPage === 1}
+      {/* Paginação Padronizada (Igual ao Dashboard) */}
+      <div className="flex justify-between items-center mt-6 px-2">
+        <p className="text-xs text-slate-500">Página {currentPage} de {totalPages || 1}</p>
+        <div className="flex gap-2">
+          <button 
+            disabled={currentPage === 1} 
             onClick={() => {
               setCurrentPage(prev => prev - 1);
               window.scrollTo({ top: 0, behavior: 'smooth' });
-            }}
-            className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-50 disabled:opacity-30 transition-all shadow-sm"
+            }} 
+            className="px-4 py-2 border rounded-xl text-xs disabled:opacity-30"
           >
-            ← Anterior
+            Anterior
           </button>
-
-          <button
-            disabled={currentPage === totalPages || totalPages === 0}
+          <button 
+            disabled={currentPage === totalPages || totalPages === 0} 
             onClick={() => {
               setCurrentPage(prev => prev + 1);
               window.scrollTo({ top: 0, behavior: 'smooth' });
-            }}
-            className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-50 disabled:opacity-30 transition-all shadow-sm"
+            }} 
+            className="px-4 py-2 bg-white border rounded-xl text-xs disabled:opacity-30"
           >
-            Próxima →
+            Próxima
           </button>
         </div>
       </div>
-    </DashboardLayout>
+    </>
   );
 }

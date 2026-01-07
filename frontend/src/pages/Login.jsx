@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
+import { INITIAL_USERS } from "../data/users";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -10,17 +11,23 @@ export default function Login() {
   const handleLogin = (e) => {
     e.preventDefault();
 
-    // Simulação de autenticação (Mock)
-    if (email === "adm@food.com" && password === "123456") {
-      const user = { id: 1, name: "Vanessa ADM", role: "admin", loginAt: new Date().toISOString() };
-      localStorage.setItem("@WhatsAppFood:user", JSON.stringify(user));
-      toast.success("Bem-vinda, Administradora!");
+    // Procurar se existe um usuário com esse e-mail e senha na nossa lista
+    const userFound = INITIAL_USERS.find(
+      (u) => u.email === email && u.password === password
+    );
+
+    if (userFound) {
+      
+      const sessionData = {
+        id: userFound.id,
+        name: userFound.name,
+        role: userFound.role,
+        loginAt: new Date().toISOString()
+      };
+
+      localStorage.setItem("@WhatsAppFood:user", JSON.stringify(sessionData));
+      toast.success(`Bem-vindo(a), ${userFound.name}!`);
       navigate("/");
-    } else if (email === "user@food.com" && password === "123456") {
-      const user = { id: 2, name: "Funcionario Silva", role: "employee", loginAt: new Date().toISOString() };
-      localStorage.setItem("@WhatsAppFood:user", JSON.stringify(user));
-      toast.success("Login realizado com sucesso!");
-      navigate("/history");
     } else {
       toast.error("E-mail ou senha incorretos.");
     }
@@ -34,15 +41,15 @@ export default function Login() {
           <div className="w-16 h-16 bg-indigo-600 rounded-2xl flex items-center justify-center mb-8 mx-auto shadow-lg shadow-indigo-200">
             <span className="text-2xl">🍽️</span>
           </div>
-          
+
           <h2 className="text-2xl font-bold text-slate-800 text-center mb-2">Acesse o Painel</h2>
           <p className="text-slate-500 text-center text-sm mb-8">Insira suas credenciais para continuar</p>
 
           <form onSubmit={handleLogin} className="space-y-5">
             <div>
               <label className="block text-xs font-bold text-slate-700 uppercase mb-2 ml-1">E-mail</label>
-              <input 
-                type="email" 
+              <input
+                type="email"
                 required
                 className="w-full px-4 py-3 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-indigo-500 transition-all text-sm bg-slate-50"
                 placeholder="exemplo@food.com"
@@ -53,8 +60,8 @@ export default function Login() {
 
             <div>
               <label className="block text-xs font-bold text-slate-700 uppercase mb-2 ml-1">Senha</label>
-              <input 
-                type="password" 
+              <input
+                type="password"
                 required
                 className="w-full px-4 py-3 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-indigo-500 transition-all text-sm bg-slate-50"
                 placeholder="••••••••"
@@ -63,7 +70,7 @@ export default function Login() {
               />
             </div>
 
-            <button 
+            <button
               type="submit"
               className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3.5 rounded-xl shadow-md shadow-indigo-100 transition-all active:scale-[0.98] mt-4"
             >
@@ -71,7 +78,7 @@ export default function Login() {
             </button>
           </form>
         </div>
-        
+
         <div className="bg-slate-50 py-4 border-t border-slate-100 text-center">
           <p className="text-[10px] text-slate-400 font-medium">Vanessa Gomes © 2026</p>
         </div>
