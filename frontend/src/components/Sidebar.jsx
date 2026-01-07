@@ -3,11 +3,9 @@ import { LayoutDashboard, History } from "lucide-react";
 import { Settings as SettingsIcon } from "lucide-react";
 
 export default function Sidebar() {
-  // 1. Recuperamos os dados do usuário para validar o nível de acesso
   const userJson = localStorage.getItem("@WhatsAppFood:user");
-  const user = userJson ? JSON.parse(userJson) : { role: "guest" };
+  const user = userJson ? JSON.parse(userJson) : { role: "guest", permissions: [] };
 
-  // Estilo padrão para os links (limpo e moderno)
   const navLinkClass = ({ isActive }) =>
     `flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 font-medium ${isActive
       ? "bg-indigo-600 text-white shadow-lg shadow-indigo-900/40"
@@ -26,22 +24,22 @@ export default function Sidebar() {
 
       {/* Menu de Navegação Dinâmico */}
       <nav className="flex-1 p-4 space-y-2">
-
-        {/* Renderiza Dashboard APENAS se for Administrador */}
-        {user.role === "admin" && (
+        
+        {/* Dashboard: Aparece se for Admin OU tiver permissão 'dashboard' */}
+        {(user.role === "admin" || user.permissions?.includes("dashboard")) && (
           <NavLink to="/" className={navLinkClass}>
             <LayoutDashboard size={20} />
             <span>Dashboard</span>
           </NavLink>
         )}
 
-        {/* Histórico visível para todos os logados (ADM e Funcionário) */}
         <NavLink to="/history" className={navLinkClass}>
           <History size={20} />
           <span>Histórico</span>
         </NavLink>
 
-        {/* Configurações visível para todos os logados (ADM e Funcionário) */}
+        {/* Configurações: Sempre visível para todos (para poderem trocar senha), 
+            mas o conteúdo interno será bloqueado pelo AuthGuard se não for admin */}
         <NavLink to="/settings" className={navLinkClass}>
           <SettingsIcon size={20} />
           <span>Configurações</span>

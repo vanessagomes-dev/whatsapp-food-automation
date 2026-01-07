@@ -8,6 +8,10 @@ import StatusBadge from "../components/StatusBadge";
 import StatCard from "../components/StatCard";
 
 export default function Dashboard() {
+  // 1. DADOS DO USUÁRIO PARA PERMISSÕES
+  const userJson = localStorage.getItem("@WhatsAppFood:user");
+  const user = userJson ? JSON.parse(userJson) : null;
+
   const [messages, setMessages] = useState([]);
   const [totalItems, setTotalItems] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -23,7 +27,7 @@ export default function Dashboard() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
-  // 1. Busca de dados
+  // 2. BUSCA DE DADOS
   useEffect(() => {
     let isMounted = true;
     const loadData = async () => {
@@ -45,7 +49,7 @@ export default function Dashboard() {
     return () => { isMounted = false; };
   }, [currentPage, filterTipo, filterOrigem]);
 
-  // 2. Filtros locais (Search e Datas)
+  // 3. FILTROS LOCAIS (Search e Datas)
   const filteredMessages = useMemo(() => {
     return messages.filter((msg) => {
       const matchSearch = !searchText || msg.mensagem?.toLowerCase().includes(searchText.toLowerCase());
@@ -56,7 +60,7 @@ export default function Dashboard() {
     });
   }, [messages, searchText, startDate, endDate]);
 
-  // 3. Formatação de Dados para os Gráficos
+  // 4. FORMATAÇÃO DE DADOS PARA OS GRÁFICOS
   const chartByTypeData = useMemo(() => {
     const counts = filteredMessages.reduce((acc, msg) => {
       const label = msg.tipo?.replace('_', ' ').toUpperCase() || "OUTROS";
@@ -75,29 +79,30 @@ export default function Dashboard() {
     return Object.keys(counts).map(key => ({ name: key, value: counts[key] }));
   }, [filteredMessages]);
 
-  // 4. KPIs
+  // 5. KPIs
   const totalApi = useMemo(() => messages.filter((m) => m.origem === "api").length, [messages]);
   const totalScheduler = useMemo(() => messages.filter((m) => m.origem === "scheduler").length, [messages]);
 
-  const handleTestSend = async () => {
+  // 6. FUNÇÃO DE DISPARO MANUAL (COM LOADING)
+  const handleManualSend = async () => {
     const loadingToast = toast.loading("Enviando mensagem de teste...");
     try {
       await sendTestMessage();
+      // Simula um pequeno delay para o "banco" atualizar
       setTimeout(async () => {
         const data = await fetchHistory(currentPage, itemsPerPage, filterTipo, filterOrigem);
         setMessages(data.items || []);
         setTotalItems(data.total || 0);
-        toast.success("Mensagem disparada!", { id: loadingToast });
+        toast.success("Mensagem disparada com sucesso!", { id: loadingToast });
       }, 1000);
     } catch (err) {
       console.error("Erro no disparo:", err);
-      toast.error("Falha ao enviar.", { id: loadingToast });
+      toast.error("Falha ao enviar mensagem.", { id: loadingToast });
     }
   };
 
   const totalPages = Math.ceil(totalItems / itemsPerPage);
 
-  // 5. Limpar Filtros
   const handleClearFilters = () => {
     setFilterTipo("all");
     setFilterOrigem("all");
@@ -109,19 +114,30 @@ export default function Dashboard() {
   };
 
   return (
-    <>
-      {/* Header Modernizado */}
+    <div className="p-6">
+      {/* HEADER COM TRAVA DE PERMISSÃO NO BOTÃO */}
       <div className="bg-white border-b border-slate-200 py-5 px-6 mb-8 rounded-2xl shadow-sm flex flex-col md:flex-row justify-between items-center gap-4">
         <div>
           <h1 className="text-xl font-bold text-slate-800">Painel de Automação</h1>
           <p className="text-slate-500 text-xs">Visão geral do sistema de disparos</p>
         </div>
-        <button onClick={handleTestSend} className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2.5 rounded-full text-sm font-bold transition-all shadow-md active:scale-95 flex items-center gap-2">
-          <span>Disparar Teste</span> <span className="bg-indigo-500 rounded-full p-1 text-[10px]">🚀</span>
-        </button>
+
+        {/* BOTÃO SÓ APARECE SE FOR ADMIN OU TIVER A PERMISSÃO manual_test */}
+        {(user?.role === 'admin' || user?.permissions?.includes('manual_test')) ? (
+          <button 
+            onClick={handleManualSend}
+            className="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-xl font-bold text-sm flex items-center gap-2 transition-all shadow-md active:scale-95"
+          >
+            🚀 Disparar Teste Manual
+          </button>
+        ) : (
+          <div className="px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl">
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Envio Manual Bloqueado</p>
+          </div>
+        )}
       </div>
 
-      {/* Cards de Métricas */}
+      {/* CARDS DE MÉTRICAS */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
         <StatCard title="Total no Banco" value={totalItems} color="blue" />
         <StatCard title="Via API" value={totalApi} color="indigo" />
@@ -129,7 +145,7 @@ export default function Dashboard() {
         <StatCard title="Filtrados (pág)" value={filteredMessages.length} color="green" />
       </div>
 
-      {/* Seção de Gráficos */}
+      {/* SEÇÃO DE GRÁFICOS */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
         <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm h-[350px]">
           <h3 className="text-sm font-bold text-slate-700 mb-4">Mensagens por Tipo</h3>
@@ -145,7 +161,7 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Seção de Filtros */}
+      {/* SEÇÃO DE FILTROS */}
       <div className="bg-slate-50 rounded-2xl p-6 border border-slate-200 mb-6">
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-sm font-bold text-slate-700 uppercase tracking-tight">Filtros de Busca</h3>
@@ -221,7 +237,7 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Tabela */}
+      {/* TABELA */}
       <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
         <table className="w-full text-sm text-left">
           <thead className="bg-slate-50 text-slate-500 font-bold uppercase text-[10px]">
@@ -253,26 +269,26 @@ export default function Dashboard() {
         </table>
       </div>
 
-      {/* Paginação */}
+      {/* PAGINAÇÃO */}
       <div className="flex justify-between items-center mt-6 px-2">
         <p className="text-xs text-slate-500">Página {currentPage} de {totalPages || 1}</p>
         <div className="flex gap-2">
           <button 
             disabled={currentPage === 1} 
             onClick={() => setCurrentPage(prev => prev - 1)} 
-            className="px-4 py-2 border rounded-xl text-xs disabled:opacity-30"
+            className="px-4 py-2 border rounded-xl text-xs disabled:opacity-30 hover:bg-slate-50 transition-all font-bold text-slate-600"
           >
             Anterior
           </button>
           <button 
             disabled={currentPage === totalPages || totalPages === 0} 
             onClick={() => setCurrentPage(prev => prev + 1)} 
-            className="px-4 py-2 bg-white border rounded-xl text-xs disabled:opacity-30"
+            className="px-4 py-2 bg-white border rounded-xl text-xs disabled:opacity-30 hover:bg-slate-50 transition-all font-bold text-slate-600"
           >
             Próxima
           </button>
         </div>
       </div>
-    </>
+    </div>
   );
 }

@@ -21,24 +21,27 @@ export default function App() {
   return (
     <BrowserRouter>
       <Toaster position="top-right" />
-
       <Routes>
         <Route path="/login" element={<Login />} />
 
-        <Route
-          element={
-            <AuthGuard>
-              <DashboardLayout>
-                <Outlet />
-              </DashboardLayout>
+        <Route element={
+          <AuthGuard>
+            <DashboardLayout>
+              <Outlet />
+            </DashboardLayout>
+          </AuthGuard>
+        }>
+          {/* Rota Raiz: Protegida pela permissão dashboard */}
+          <Route path="/" element={
+            <AuthGuard permissionRequired="dashboard">
+              <Dashboard />
             </AuthGuard>
-          }
-        >
-         
-          <Route path="/" element={<HomeRedirect />} />
-          
-          <Route path="/history" element={<History />} />
+          } />
+
+          {/* Rota Configurações: Acesso livre para Perfil/Senha*/}
           <Route path="/settings" element={<Settings />} />
+
+          <Route path="/history" element={<History />} />
         </Route>
 
         <Route path="*" element={<Navigate to="/" replace />} />
