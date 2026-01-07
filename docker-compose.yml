@@ -1,0 +1,25 @@
+version: '3.8'
+
+services:
+  # Serviço do Backend (Python/FastAPI)
+  backend:
+    build: ./backend
+    ports:
+      - "8000:8000"
+    environment:
+      - TEST_MODE=true
+    volumes:
+      - ./backend:/app
+
+  # Serviço do Frontend (React/Vite)
+  frontend:
+    build: ./frontend
+    ports:
+      - "5173:5173"
+    environment:
+      - VITE_API_URL=http://localhost:8000
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    depends_on:
+      - backend
