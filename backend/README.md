@@ -19,7 +19,6 @@ reduzindo trabalho manual e garantindo mensagens padronizadas em horários estra
 - Jantar
 
 
-
 ## 🧠 Visão de Negócio
 
 Este projeto resolve um problema operacional comum em pequenos e médios comércios:
@@ -122,7 +121,8 @@ Histórico de mensagem
 
 Alias DX (frontend-friendly):
 
-- GET /history
+- **GET /history**: Agora suporta filtros de `tipo`, `origem`, `start_date`, `end_date` e `search`.
+- **POST /v1/send/test-now**: Disparo manual imediato para testes.
 
 
 ## 📊 Histórico e Auditoria
@@ -146,9 +146,5 @@ permitindo auditoria, filtros e integração direta com dashboards frontend.
 - Deploy em cloud (Docker-ready)
 
 
-## 🧩 Status do Projeto
-
-🟢 MVP funcional
-🧪 Mock validado
-🏗️ Arquitetura pronta para produção
-🚀 Evolução contínua
+## 📊 Evolução
+O histórico agora persiste dados de `modo` (MOCK/PROD) para garantir que o Dashboard exiba métricas reais separadas de testes.
