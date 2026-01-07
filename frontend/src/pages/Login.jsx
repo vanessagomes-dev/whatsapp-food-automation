@@ -11,13 +11,11 @@ export default function Login() {
   const handleLogin = (e) => {
     e.preventDefault();
 
-    // Procurar se existe um usuário com esse e-mail e senha na nossa lista
     const userFound = INITIAL_USERS.find(
       (u) => u.email === email && u.password === password
     );
 
     if (userFound) {
-      
       const sessionData = {
         id: userFound.id,
         name: userFound.name,
@@ -27,7 +25,13 @@ export default function Login() {
 
       localStorage.setItem("@WhatsAppFood:user", JSON.stringify(sessionData));
       toast.success(`Bem-vindo(a), ${userFound.name}!`);
-      navigate("/");
+      
+      // REDIRECIONAMENTO INTELIGENTE
+      if (userFound.role === 'admin') {
+        navigate("/");
+      } else {
+        navigate("/history");
+      }
     } else {
       toast.error("E-mail ou senha incorretos.");
     }
@@ -37,7 +41,6 @@ export default function Login() {
     <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4 font-sans">
       <div className="max-w-md w-full bg-white rounded-3xl shadow-xl border border-slate-100 overflow-hidden">
         <div className="p-8 md:p-12">
-          {/* Logo/Icon */}
           <div className="w-16 h-16 bg-indigo-600 rounded-2xl flex items-center justify-center mb-8 mx-auto shadow-lg shadow-indigo-200">
             <span className="text-2xl">🍽️</span>
           </div>

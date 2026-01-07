@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { fetchHistory } from "../services/history";
 import ExcelJS from "exceljs";
@@ -10,10 +10,15 @@ export default function History() {
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
-
   const [currentPage, setCurrentPage] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
   const itemsPerPage = 10;
+
+  // Pegar dados do usuário para controle de visualização
+  const user = useMemo(() => {
+    const data = localStorage.getItem("@WhatsAppFood:user");
+    return data ? JSON.parse(data) : null;
+  }, []);
 
   useEffect(() => {
     let isMounted = true;
@@ -71,12 +76,14 @@ export default function History() {
 
   return (
     <>
-      {/* Header */}
       <div className="bg-white border-b border-slate-200 py-5 px-6 mb-8 rounded-2xl shadow-sm flex flex-col md:flex-row justify-between items-center gap-4">
         <div>
-          <Link to="/" className="text-indigo-600 hover:text-indigo-800 text-xs font-bold flex items-center gap-1 mb-1">
-            ← Dashboard
-          </Link>
+          {/* SÓ MOSTRA O LINK SE FOR ADMIN */}
+          {user?.role === "admin" && (
+            <Link to="/" className="text-indigo-600 hover:text-indigo-800 text-xs font-bold flex items-center gap-1 mb-1">
+              ← Dashboard
+            </Link>
+          )}
           <h1 className="text-xl font-bold text-slate-800">Histórico de Mensagens</h1>
           <p className="text-slate-500 text-xs">Consulta e exportação de logs</p>
         </div>
@@ -89,7 +96,6 @@ export default function History() {
         </button>
       </div>
 
-      {/* Busca */}
       <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm mb-6 flex flex-col md:flex-row items-center gap-4">
         <div className="relative flex-1 w-full">
           <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">🔍</span>
@@ -106,7 +112,6 @@ export default function History() {
         </div>
       </div>
 
-      {/* Tabela */}
       <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm text-left">
@@ -140,7 +145,6 @@ export default function History() {
         </div>
       </div>
 
-      {/* Paginação Padronizada (Igual ao Dashboard) */}
       <div className="flex justify-between items-center mt-6 px-2">
         <p className="text-xs text-slate-500">Página {currentPage} de {totalPages || 1}</p>
         <div className="flex gap-2">
