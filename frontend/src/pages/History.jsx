@@ -3,34 +3,43 @@ import { Link } from "react-router-dom";
 import { fetchHistory } from "../services/history";
 import ExcelJS from "exceljs";
 import { saveAs } from "file-saver";
+import DashboardLayout from "../layouts/DashboardLayout";
+import StatusBadge from "../components/StatusBadge";
+import toast from 'react-hot-toast';
 
 export default function History() {
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState(""); 
+  const [searchTerm, setSearchTerm] = useState("");
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
+  const itemsPerPage = 10;
 
   useEffect(() => {
     let isMounted = true;
     const loadHistory = async () => {
       try {
         setLoading(true);
-        const data = await fetchHistory();
+    
+        const data = await fetchHistory(currentPage, itemsPerPage);
         if (isMounted) {
           setMessages(data.items || []);
+          setTotalItems(data.total || 0);
         }
-      } catch (error) {
-        console.error("Erro ao carregar histórico:", error);
+      } catch {
+        toast.error("Erro ao carregar dados.");
       } finally {
-        if (isMounted) {
-          setLoading(false);
-        }
+        if (isMounted) setLoading(false);
       }
     };
     loadHistory();
     return () => { isMounted = false; };
-  }, []);
+  }, [currentPage]);
 
-  // Lógica de filtro em tempo real
+  // Cálculo do total de páginas
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
+
   const filteredMessages = messages.filter((msg) => {
     const search = searchTerm.toLowerCase();
     return (
@@ -43,109 +52,122 @@ export default function History() {
   const exportToExcel = async () => {
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet("Histórico");
-    
     worksheet.columns = [
       { header: "Data/Hora", key: "timestamp", width: 25 },
       { header: "Tipo", key: "tipo", width: 15 },
       { header: "Mensagem", key: "mensagem", width: 50 },
       { header: "Origem", key: "origem", width: 15 },
     ];
-
-    // Exporta apenas o que está filtrado na tela!
     filteredMessages.forEach((msg) => {
       worksheet.addRow({
         timestamp: new Date(msg.timestamp).toLocaleString(),
         tipo: msg.tipo,
         mensagem: msg.mensagem,
-        origem: msg.origem.toUpperCase(),
+        origem: msg.origem?.toUpperCase(),
       });
     });
-
     const buffer = await workbook.xlsx.writeBuffer();
-    saveAs(new Blob([buffer]), `historico_filtrado_${Date.now()}.xlsx`);
+    saveAs(new Blob([buffer]), `historico_${Date.now()}.xlsx`);
+    toast.success("Excel gerado!");
   };
 
-  if (loading) {
-    return <div className="flex justify-center items-center h-screen text-gray-500">Carregando...</div>;
-  }
-
   return (
-    <div className="p-6 max-w-7xl mx-auto font-sans">
-      {/* Topo e Navegação */}
-      <div className="mb-8">
-        <Link to="/" className="text-blue-600 hover:underline text-sm flex items-center gap-1 mb-2">
-          ← Voltar ao Dashboard
-        </Link>
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-          <h1 className="text-2xl font-bold text-slate-800">Histórico de Mensagens</h1>
-          <button onClick={exportToExcel} className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-all">
-            📊 Exportar {searchTerm && "Filtrados"}
-          </button>
+    <DashboardLayout>
+      {/* Header */}
+      <div className="bg-white border-b border-slate-200 py-5 px-6 mb-8 rounded-2xl shadow-sm flex flex-col md:flex-row justify-between items-center gap-4">
+        <div>
+          <Link to="/" className="text-indigo-600 hover:text-indigo-800 text-xs font-bold flex items-center gap-1 mb-1">
+            ← Dashboard
+          </Link>
+          <h1 className="text-xl font-bold text-slate-800">Histórico de Mensagens</h1>
+          <p className="text-slate-500 text-xs">Consulta e exportação de logs</p>
         </div>
+        <button
+          onClick={exportToExcel}
+          disabled={filteredMessages.length === 0}
+          className="bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white px-6 py-2.5 rounded-full text-sm font-bold transition-all shadow-md active:scale-95 flex items-center gap-2"
+        >
+          📊 Exportar Excel
+        </button>
       </div>
 
-      {/* Barra de Filtros */}
-      <div className="mb-6 flex flex-col md:flex-row gap-4">
-        <div className="relative flex-1">
-          <span className="absolute left-3 top-2.5 text-gray-400">🔍</span>
+      {/* Busca */}
+      <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm mb-6 flex flex-col md:flex-row items-center gap-4">
+        <div className="relative flex-1 w-full">
+          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">🔍</span>
           <input
             type="text"
-            placeholder="Buscar por mensagem, tipo ou origem..."
-            className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+            placeholder="Buscar..."
+            className="w-full pl-12 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none text-sm focus:ring-2 focus:ring-indigo-500 transition-all"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
-        <div className="text-sm text-slate-500 self-center">
-          Exibindo <strong>{filteredMessages.length}</strong> de {messages.length} registros
+        <div className="text-xs font-bold text-slate-500 bg-slate-100 px-4 py-2 rounded-lg whitespace-nowrap">
+          {filteredMessages.length} registros nesta página
         </div>
       </div>
 
       {/* Tabela */}
-      <div className="bg-white shadow-xl rounded-xl overflow-hidden border border-slate-200">
-        <table className="w-full text-sm text-left">
-          <thead className="bg-slate-50 text-slate-600 uppercase text-xs font-bold">
-            <tr>
-              <th className="px-6 py-4">Data/Hora</th>
-              <th className="px-6 py-4">Tipo</th>
-              <th className="px-6 py-4">Mensagem</th>
-              <th className="px-6 py-4 text-center">Origem</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-100">
-            {filteredMessages.length > 0 ? (
-              filteredMessages.map((msg, index) => (
-                <tr key={index} className="hover:bg-blue-50/50 transition-colors">
-                  <td className="px-6 py-4 text-slate-500 whitespace-nowrap">
-                    {new Date(msg.timestamp).toLocaleString()}
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className="bg-slate-100 text-slate-700 px-2 py-1 rounded text-[11px] font-medium">
-                      {msg.tipo}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 text-slate-700 max-w-md truncate">
-                    {msg.mensagem}
-                  </td>
-                  <td className="px-6 py-4 text-center">
-                    <span className={`px-2 py-1 rounded text-[10px] font-black ${
-                      msg.origem === 'api' ? 'bg-purple-100 text-purple-700' : 'bg-orange-100 text-orange-700'
-                    }`}>
-                      {msg.origem.toUpperCase()}
-                    </span>
-                  </td>
-                </tr>
-              ))
-            ) : (
+      <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm text-left">
+            <thead className="bg-slate-50 text-slate-500 font-bold uppercase text-[10px] tracking-wider">
               <tr>
-                <td colSpan="4" className="px-6 py-12 text-center text-gray-400">
-                  Nenhum resultado encontrado para "{searchTerm}"
-                </td>
+                <th className="px-6 py-4">Data/Hora</th>
+                <th className="px-6 py-4">Tipo</th>
+                <th className="px-6 py-4">Mensagem</th>
+                <th className="px-6 py-4 text-center">Origem</th>
+                <th className="px-6 py-4 text-center">Modo</th>
               </tr>
-            )}
-          </tbody>
-        </table>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {loading ? (
+                <tr><td colSpan="5" className="px-6 py-12 text-center text-slate-400 animate-pulse font-medium">Carregando dados...</td></tr>
+              ) : filteredMessages.map((msg, index) => (
+                <tr key={index} className="hover:bg-indigo-50/30 transition-colors">
+                  <td className="px-6 py-4 whitespace-nowrap text-slate-500">{new Date(msg.timestamp).toLocaleString()}</td>
+                  <td className="px-6 py-4 font-semibold text-slate-700">{msg.tipo?.replace('_', ' ')}</td>
+                  <td className="px-6 py-4 text-slate-600 max-w-xs truncate">{msg.mensagem}</td>
+                  <td className="px-6 py-4 text-center"><StatusBadge value={msg.origem} type="origem" /></td>
+                  <td className="px-6 py-4 text-center"><StatusBadge value={msg.modo || 'mock'} type="modo" /></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
-    </div>
+
+      {/* Paginação */}
+      <div className="flex flex-col md:flex-row justify-between items-center mt-6 gap-4">
+        <div className="text-xs text-slate-500 font-medium bg-slate-100 px-3 py-1.5 rounded-lg border border-slate-200">
+          Página <span className="text-indigo-600 font-bold">{currentPage}</span> de {totalPages || 1}
+        </div>
+
+        <div className="flex items-center gap-2">
+          <button
+            disabled={currentPage === 1}
+            onClick={() => {
+              setCurrentPage(prev => prev - 1);
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+            className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-50 disabled:opacity-30 transition-all shadow-sm"
+          >
+            ← Anterior
+          </button>
+
+          <button
+            disabled={currentPage === totalPages || totalPages === 0}
+            onClick={() => {
+              setCurrentPage(prev => prev + 1);
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+            className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-50 disabled:opacity-30 transition-all shadow-sm"
+          >
+            Próxima →
+          </button>
+        </div>
+      </div>
+    </DashboardLayout>
   );
 }

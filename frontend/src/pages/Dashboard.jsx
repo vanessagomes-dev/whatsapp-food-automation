@@ -112,17 +112,13 @@ export default function Dashboard() {
   return (
     <DashboardLayout>
       {/* Header Modernizado */}
-      <div className="bg-white border-b border-slate-200 -mt-8 -mx-8 mb-8 px-8 py-5 flex flex-col md:flex-row justify-between items-center shadow-sm gap-4">
+      <div className="bg-white border-b border-slate-200 py-5 px-6 mb-8 rounded-2xl shadow-sm flex flex-col md:flex-row justify-between items-center gap-4">
         <div>
           <h1 className="text-xl font-bold text-slate-800">Painel de Automação</h1>
-          <p className="text-slate-500 text-xs">Monitore e teste seus disparos automáticos.</p>
+          <p className="text-slate-500 text-xs">Visão geral do sistema de disparos</p>
         </div>
-        <button
-          onClick={handleTestSend}
-          className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2.5 rounded-full text-sm font-bold transition-all shadow-md active:scale-95 flex items-center gap-2"
-        >
-          <span>Disparar Teste Agora</span>
-          <span className="bg-indigo-500 rounded-full p-1 text-[10px]">🚀</span>
+        <button onClick={handleTestSend} className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2.5 rounded-full text-sm font-bold transition-all shadow-md active:scale-95 flex items-center gap-2">
+          <span>Disparar Teste</span> <span className="bg-indigo-500 rounded-full p-1 text-[10px]">🚀</span>
         </button>
       </div>
 
