@@ -1,0 +1,23 @@
+[
+    {
+        "id": 1,
+        "name": "Vanessa Gomes",
+        "email": "adm@food.com",
+        "password": "123",
+        "role": "admin",
+        "permissions": [
+            "dashboard",
+            "manual_test"
+        ]
+    },
+    {
+        "name": "Funcionario 001",
+        "email": "user001@food.com",
+        "password": "1234",
+        "role": "employee",
+        "id": "002",
+        "permissions": [
+            "history"
+        ]
+    }
+]

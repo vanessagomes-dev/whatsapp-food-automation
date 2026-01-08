@@ -1,51 +1,45 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
-import { INITIAL_USERS } from "../data/users";
+import { loginUser } from "../services/auth";
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
+    const loadingToast = toast.loading("Autenticando...");
 
-    // 1. BUSCA CORRETA: Tenta pegar a lista atualizada do localStorage
-    // Se não existir nada lá (primeiro acesso), ele usa a lista do seu arquivo data/users.js
-    const savedUsers = localStorage.getItem("@WhatsAppFood:all_users");
-    const allUsers = savedUsers ? JSON.parse(savedUsers) : INITIAL_USERS;
+    try {
+      // 1. CHAMADA À API: Envia para o Backend Python
+      const userData = await loginUser(email, password);
 
-    // 2. PROCURA O USUÁRIO NA LISTA ATUALIZADA
-    const userFound = allUsers.find(
-      (u) => u.email === email && u.password === password
-    );
-
-    if (userFound) {
-      // 3. ATUALIZA O "BANCO": Se o usuário logou, vamos atualizar a lista geral com o horário de login
-      const updatedAllUsers = allUsers.map(u => 
-        u.id === userFound.id ? { ...u, loginAt: new Date().toISOString() } : u
-      );
-      localStorage.setItem("@WhatsAppFood:all_users", JSON.stringify(updatedAllUsers));
-
-      // 4. SALVA SESSÃO ATUAL: Salva os dados do usuário que acabou de logar
-      // Importante: Incluímos 'permissions' aqui para as telas respeitarem os checkboxes
-      const sessionData = {
-        ...userFound,
+      // 2. SALVA SESSÃO: Se a API respondeu 200 OK, salvamos o usuário logado
+      // O userData já vem com id, name, role e permissions do backend
+      localStorage.setItem("@WhatsAppFood:user", JSON.stringify({
+        ...userData,
         loginAt: new Date().toISOString()
-      };
+      }));
 
-      localStorage.setItem("@WhatsAppFood:user", JSON.stringify(sessionData));
-      toast.success(`Bem-vindo(a), ${userFound.name}!`);
-      
-      // 5. REDIRECIONAMENTO POR CARGO
-      if (userFound.role === 'admin') {
+      toast.success(`Bem-vindo(a), ${userData.name}!`, { id: loadingToast });
+
+      // 3. REDIRECIONAMENTO POR CARGO
+      if (userData.role === 'admin') {
         navigate("/");
       } else {
-        navigate("/history");
+        // Se for funcionário, verificamos se ele tem permissão de dashboard
+        // caso contrário, vai direto para o histórico
+        const canSeeDashboard = userData.permissions?.includes('dashboard');
+        navigate(canSeeDashboard ? "/" : "/history");
       }
-    } else {
-      toast.error("E-mail ou senha incorretos.");
+
+    } catch (err) {
+      // 4. TRATAMENTO DE ERRO: Exibe a mensagem vinda do Python (E-mail ou senha incorretos)
+      const errorMsg = err.response?.data?.detail || "Erro ao conectar com o servidor.";
+      toast.error(errorMsg, { id: loadingToast });
+      console.error("Erro no login:", err);
     }
   };
 

@@ -1,87 +1,133 @@
-import { useState } from "react";
-import { User, Shield, Lock, UserPlus, Trash2, Save, X } from "lucide-react";
+import { useState, useEffect } from "react";
+import { User, Shield, Lock, UserPlus, Trash2, X } from "lucide-react";
 import toast from "react-hot-toast";
-import { INITIAL_USERS } from "../data/users";
+import { fetchUsers, createUser, updateAllUsers } from "../services/auth";
 
 export default function Settings() {
+    // 1. Pegamos o usuário logado para saber se é Admin
     const userJson = localStorage.getItem("@WhatsAppFood:user");
     const currentUser = userJson ? JSON.parse(userJson) : null;
 
-    // ESTADO DE USUÁRIOS: Garante que carregue do storage para persistir novos cadastros
-    const [users, setUsers] = useState(() => {
-        const saved = localStorage.getItem("@WhatsAppFood:all_users");
-        if (saved) return JSON.parse(saved);
-        return INITIAL_USERS;
-    });
+    // 2. Estado de usuários começa vazio e é preenchido pelo useEffect
+    const [users, setUsers] = useState([]);
+    const [loading, setLoading] = useState(true);
 
     const [showModal, setShowModal] = useState(false);
     const [newUser, setNewUser] = useState({ name: "", email: "", password: "", role: "employee" });
     const [newPassword, setNewPassword] = useState("");
 
-    // FUNÇÃO QUE SALVA NO "BANCO" LOCAL
-    const saveToDatabase = (updatedList) => {
-        setUsers(updatedList);
-        localStorage.setItem("@WhatsAppFood:all_users", JSON.stringify(updatedList));
+    // 3. EFEITO PARA CARREGAR DADOS DA API
+    useEffect(() => {
+        const loadData = async () => {
+            try {
+                const data = await fetchUsers();
+                setUsers(data);
+            } catch (err) {
+                console.error("Erro detalhado:", err);
+                toast.error("Erro ao carregar colaboradores do servidor.");
+            } finally {
+                setLoading(false);
+            }
+        };
+        loadData();
+    }, []);
+
+    // 4. FUNÇÃO QUE SALVA NO SERVIDOR (Substituiu a lógica de localStorage)
+    const saveToDatabase = async (updatedList) => {
+        try {
+            // Chama a rota PUT que criamos no Python para salvar a lista toda
+            await updateAllUsers(updatedList);
+            setUsers(updatedList);
+            // Backup no storage apenas para manter a sessão se necessário
+            localStorage.setItem("@WhatsAppFood:all_users", JSON.stringify(updatedList));
+        } catch (err) {
+            console.error("Erro ao salvar:", err);
+            toast.error("Erro ao gravar dados no servidor.");
+        }
     };
 
-    // 1. ADICIONAR NOVO USUÁRIO
-    const handleAddUser = (e) => {
+    // --- FUNÇÕES DE MANIPULAÇÃO AJUSTADAS PARA API ---
+
+    const handleAddUser = async (e) => {
         e.preventDefault();
-        const newId = (Math.max(...users.map(u => parseInt(u.id || 0))) + 1).toString().padStart(3, '0');
+        const loadingToast = toast.loading("Salvando no servidor...");
+
+        const newId = (Math.max(...users.map(u => parseInt(u.id || 0)), 0) + 1).toString().padStart(3, '0');
 
         const userToAdd = {
             ...newUser,
             id: newId,
-            permissions: newUser.role === 'admin' ? ['all'] : ['history']
+            permissions: newUser.role === 'admin' ? ['dashboard', 'manual_test'] : ['history']
         };
 
-        const updated = [...users, userToAdd];
-        saveToDatabase(updated);
-        setShowModal(false);
-        setNewUser({ name: "", email: "", password: "", role: "employee" });
-        toast.success(`Usuário ${userToAdd.name} criado com sucesso!`);
+        try {
+            // 1. Envia para a rota POST /v1/users do Python
+            await createUser(userToAdd);
+            
+            // 2. Atualiza o estado local para refletir na tela
+            setUsers([...users, userToAdd]);
+            
+            setShowModal(false);
+            setNewUser({ name: "", email: "", password: "", role: "employee" });
+            toast.success(`Usuário ${userToAdd.name} criado com sucesso!`, { id: loadingToast });
+        } catch (err) {
+            console.error("Erro na operação de salvamento:", err);
+            toast.error("Erro ao criar usuário no servidor.", { id: loadingToast });
+        }
     };
 
-    // 2. ALTERAR PERMISSÕES
-    const togglePermission = (userId, perm) => {
-        // 1.  lista de usuários com a permissão alterada
+    const togglePermission = async (userId, perm) => {
         const updatedUsers = users.map(u => {
             if (u.id === userId) {
                 const currentPerms = u.permissions || [];
                 const newPerms = currentPerms.includes(perm)
                     ? currentPerms.filter(p => p !== perm)
-                    : [...currentPerms, perm];             
-
+                    : [...currentPerms, perm];
                 return { ...u, permissions: newPerms };
             }
             return u;
         });
 
-        // 2. ATUALIZAÇÃO CRUCIAL: Salva no estado e no localStorage simultaneamente
-        saveToDatabase(updatedUsers);
-
-        // 3. Feedback visual para o usuário
-        toast.success("Permissões atualizadas com sucesso!");
+        // Aguarda o salvamento no users.json
+        await saveToDatabase(updatedUsers);
+        toast.success("Permissões sincronizadas com o servidor!");
     };
 
-    // 3. ALTERAR SENHA DO USUÁRIO LOGADO
-    const handleUpdatePassword = () => {
+    const handleUpdatePassword = async () => {
         if (!newPassword) return toast.error("Digite a nova senha.");
-        const updated = users.map(u => u.id === currentUser.id ? { ...u, password: newPassword } : u);
-        saveToDatabase(updated);
-        setNewPassword("");
-        toast.success("Senha atualizada!");
-    };
+        
+        const updated = users.map(u => 
+            u.id === currentUser.id ? { ...u, password: newPassword } : u
+        );
 
-    // 4. REMOVER USUÁRIO
-    const handleDelete = (id) => {
-        if (id === currentUser.id) return toast.error("Você não pode se excluir.");
-        if (confirm("Deseja realmente excluir este usuário?")) {
-            const updated = users.filter(u => u.id !== id);
-            saveToDatabase(updated);
-            toast.success("Usuário removido.");
+        const loadingToast = toast.loading("Atualizando senha...");
+        try {
+            await saveToDatabase(updated);
+            setNewPassword("");
+            toast.success("Senha atualizada no banco de dados!", { id: loadingToast });
+        } catch {
+            toast.error("Erro ao atualizar senha.", { id: loadingToast });
         }
     };
+
+    const handleDelete = async (id) => {
+        if (id === currentUser.id) return toast.error("Você não pode se excluir.");
+        
+        if (window.confirm("Deseja realmente excluir este usuário do servidor?")) {
+            const updated = users.filter(u => u.id !== id);
+            await saveToDatabase(updated);
+            toast.success("Usuário removido do arquivo oficial.");
+        }
+    };
+
+    if (loading) {
+        return (
+            <div className="min-h-[400px] flex items-center justify-center flex-col gap-4">
+                <div className="w-8 h-8 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
+                <p className="text-slate-500 font-medium">Sincronizando com o servidor...</p>
+            </div>
+        );
+    }
 
     return (
         <div className="max-w-5xl mx-auto space-y-6 pb-10">
@@ -102,7 +148,9 @@ export default function Settings() {
                     </div>
                     <div>
                         <label className="block text-[10px] font-black text-slate-400 uppercase mb-1">Último Login</label>
-                        <p className="text-sm text-slate-500">{currentUser?.loginAt ? new Date(currentUser.loginAt).toLocaleString() : 'Primeiro acesso'}</p>
+                        <p className="text-sm text-slate-500">
+                            {currentUser?.loginAt ? new Date(currentUser.loginAt).toLocaleString() : 'Primeiro acesso'}
+                        </p>
                     </div>
                 </div>
             </section>
@@ -178,7 +226,9 @@ export default function Settings() {
                                             />
                                         </td>
                                         <td className="px-6 py-4 text-right">
-                                            <button onClick={() => handleDelete(u.id)} className="p-2 text-slate-300 hover:text-red-500"><Trash2 size={16} /></button>
+                                            <button onClick={() => handleDelete(u.id)} className="p-2 text-slate-300 hover:text-red-500">
+                                                <Trash2 size={16} />
+                                            </button>
                                         </td>
                                     </tr>
                                 ))}
