@@ -1,14 +1,17 @@
 # 💻 WhatsApp Food Automation - Frontend
 
-Painel administrativo desenvolvido para gestão e monitoramento dos disparos de mensagens.
+Painel administrativo profissional desenvolvido para gestão de disparos e controle de equipe.
 
 ## ✨ Funcionalidades Implementadas
 
-- **Dashboard de Métricas**: Gráficos interativos (Recharts) por tipo de refeição e origem do disparo.
-- **Histórico Profissional**: Listagem com paginação e suporte a scroll lateral (Mobile Ready).
-- **Filtros Avançados**: Busca por texto, data, tipo e origem com botão de reset rápido.
-- **Exportação**: Geração de relatórios em Excel (.xlsx) dos dados filtrados.
-- **Notificações**: Feedback em tempo real com React Hot Toast.
+- **🔒 Gestão de Acesso**: Sistema de login com persistência em `localStorage`.
+- **🛡️ Controle de Permissões**: 
+    - Atribuição dinâmica de permissões (Visualizar Dashboard, Executar Teste Manual).
+    - Proteção de rotas com `AuthGuard` e navegação inteligente.
+- **👥 Gestão de Equipe**: Criação, edição de permissões e exclusão de colaboradores (Exclusivo Admin).
+- **📊 Dashboard Dinâmico**: Gráficos interativos (Recharts) que respeitam o nível de acesso do usuário.
+- **⚡ Envio Manual Interativo**: Botão de disparo imediato integrado à API com feedback via `react-hot-toast`.
+- **📂 Exportação Profissional**: Relatórios em Excel (.xlsx) integrando filtros avançados.
 
 ## 🎨 Identidade Visual
 O projeto utiliza uma estética **SaaS Moderna**:
@@ -17,10 +20,11 @@ O projeto utiliza uma estética **SaaS Moderna**:
 - **Responsividade**: Adaptado para Desktop e Mobile.
 
 ## 🛠️ Tecnologias
-- React.js + Vite
-- Tailwind CSS (Estilização)
+- React.js 18 + Vite
+- Tailwind CSS (Estilização SaaS)
 - Recharts (Gráficos)
 - Lucide React (Ícones)
+- React Router Dom (Navegação Protegida)
 - ExcelJS (Relatórios)
 - Axios (Integração com API)
 

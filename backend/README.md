@@ -133,18 +133,16 @@ permitindo auditoria, filtros e integração direta com dashboards frontend.
 
 ## 🗺️ Roadmap Técnico
 
-- Dashboard administrativo (frontend)
+## ✅ Metas Alcançadas (Roadmap)
+- [x] Dashboard administrativo (Frontend React)
+- [x] Sistema de login e permissões de usuário
+- [x] Filtros avançados e métricas em tempo real
+- [x] Persistência local de histórico e usuários
 
-- Filtros avançados e métricas
-
-- Persistência em banco de dados (PostgreSQL)
-
-- Integração com WhatsApp Cloud API / Twilio
-
-- Suporte a múltiplos clientes
-
-- Deploy em cloud (Docker-ready)
-
+## 🗺️ Próximos Passos
+- [ ] Persistência em banco de dados robusto (PostgreSQL)
+- [ ] Integração oficial com WhatsApp Cloud API
+- [ ] Suporte a múltiplos estabelecimentos (Multi-tenant)
 
 ## 📊 Evolução
 O histórico agora persiste dados de `modo` (MOCK/PROD) para garantir que o Dashboard exiba métricas reais separadas de testes.

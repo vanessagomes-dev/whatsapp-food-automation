@@ -1,6 +1,11 @@
 # WhatsApp Food Automation - Full Stack MVP
 
-Este é um ecossistema completo para automação de disparos de mensagens para restaurantes e comércios alimentícios. O sistema conta com um motor de agendamento (Back-end) e um painel administrativo profissional (Front-end).
+Este é um ecossistema completo para automação de disparos de mensagens para restaurante. O sistema conta com um motor de agendamento (Back-end) e um painel administrativo profissional (Front-end).
+
+## Novidades da Versão (Jan/2026)
+- **Sistema de Usuários**: Login seguro e persistente.
+- **Controle de Acesso (RBAC)**: Permissões granulares por usuário (Dashboard, Envio Manual).
+- **Segurança**: Rotas protegidas por AuthGuards e troca de senha de colaborador.
 
 ###  Pré-requisitos
 Antes de começar, você vai precisar ter instalado em sua máquina:
@@ -40,7 +45,7 @@ python -m app.main
 ##  Estrutura do Repositório
 
 - **/backend**: API em Python (FastAPI) com motor de agendamento e logs.
-- **/frontend**: Dashboard Administrativo em React + Tailwind CSS.
+- **/frontend**: Dashboard Administrativo em React (Vite) + Tailwind CSS + Sistema de Permissões.
 
 ##  Como rodar o projeto completo
 
