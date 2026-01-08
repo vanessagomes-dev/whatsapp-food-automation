@@ -27,7 +27,7 @@ export async function fetchHistory(page = 1, limit = 10, tipo?: string, origem?:
   return response.data;
 }
 
-export async function sendTestMessage() {
+export const sendTestMessage = async () => {
   const response = await api.post("/v1/send/test-now");
   return response.data;
-}
+};

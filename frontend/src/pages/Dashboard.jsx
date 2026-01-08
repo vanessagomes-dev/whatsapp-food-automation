@@ -83,23 +83,30 @@ export default function Dashboard() {
   const totalApi = useMemo(() => messages.filter((m) => m.origem === "api").length, [messages]);
   const totalScheduler = useMemo(() => messages.filter((m) => m.origem === "scheduler").length, [messages]);
 
-  // 6. FUNÇÃO DE DISPARO MANUAL (COM LOADING)
-  const handleManualSend = async () => {
-    const loadingToast = toast.loading("Enviando mensagem de teste...");
-    try {
-      await sendTestMessage();
-      // Simula um pequeno delay para o "banco" atualizar
-      setTimeout(async () => {
+  // 6. FUNÇÃO DE DISPARO MANUAL (Refinada para o Backend Python)
+const handleManualSend = async () => {
+  const loadingToast = toast.loading("Iniciando motor de envio no servidor...");
+  try {
+    // Dispara o POST /v1/send/test-now no seu api.py
+    await sendTestMessage();
+    
+    // Aguarda 1.5s para o Python terminar de escrever no arquivo e o front atualizar
+    setTimeout(async () => {
+      try {
         const data = await fetchHistory(currentPage, itemsPerPage, filterTipo, filterOrigem);
         setMessages(data.items || []);
         setTotalItems(data.total || 0);
-        toast.success("Mensagem disparada com sucesso!", { id: loadingToast });
-      }, 1000);
-    } catch (err) {
-      console.error("Erro no disparo:", err);
-      toast.error("Falha ao enviar mensagem.", { id: loadingToast });
-    }
-  };
+        toast.success("Mensagem disparada e registrada com sucesso!", { id: loadingToast });
+      } catch (err) {
+         console.error("Erro ao atualizar histórico:", err);
+         toast.dismiss(loadingToast);
+      }
+    }, 1500);
+  } catch (err) {
+    console.error("Erro no disparo:", err);
+    toast.error("Servidor Offline ou Erro no Motor.", { id: loadingToast });
+  }
+};
 
   const totalPages = Math.ceil(totalItems / itemsPerPage);
 
