@@ -1,20 +1,38 @@
-# WhatsApp Food Automation - Full Stack MVP
+# WhatsApp Food Automation - Full Stack MVP 🍽️📲
 
-Este é um ecossistema completo para automação de disparos de mensagens para restaurante. O sistema conta com um motor de agendamento (Back-end) e um painel administrativo profissional (Front-end).
+Este é um ecossistema completo para automação de disparos de mensagens para restaurantes e comércios alimentícios. O sistema conta com um motor de agendamento inteligente (Back-end) e um painel administrativo profissional com controle de acesso (Front-end).
 
-## Novidades da Versão (Jan/2026)
-- **Sistema de Usuários**: Login seguro e persistente.
-- **Controle de Acesso (RBAC)**: Permissões granulares por usuário (Dashboard, Envio Manual).
-- **Segurança**: Rotas protegidas por AuthGuards e troca de senha de colaborador.
+## 📸 Demonstração do Sistema
 
-###  Pré-requisitos
-Antes de começar, você vai precisar ter instalado em sua máquina:
+<div align="center">
+  <img src="./assets/dashboard.PNG" width="32%" alt="Dashboard" />
+  <img src="./assets/Historico.PNG" width="32%" alt="Histórico" />
+  <img src="./assets/Settings.PNG" width="32%" alt="Configurações" />
+</div>
 
-- Python 3.10+ (para rodar o backend manualmente).
+#### 🛠️ Detalhes Técnicos das Telas:
 
-- Node.js 18+ (para rodar o frontend manualmente).
+* **Dashboard de Métricas**: Painel desenvolvido com **Recharts** para análise de dados em tempo real. Implementa lógica de filtros complexos por tipo de refeição (Café, Almoço, Jantar) e origem do disparo (API ou Scheduler), com proteção de rota via `AuthGuard`.
+* **Histórico de Disparos**: Interface de monitoramento com suporte a paginação e busca global. Exibe o status de cada mensagem e utiliza componentes customizados como `StatusBadge` para uma experiência visual clara e moderna (SaaS Style).
+* **Gestão & Permissões (RBAC)**: Sistema de controle de acesso baseado em cargos. Permite ao Administrador gerenciar a equipe e atribuir permissões granulares como "Acesso ao Dashboard" ou "Envio Manual de Testes", com persistência em `localStorage`.
 
-- Docker & Docker Compose (opcional, para rodar tudo em containers).
+---
+
+## 🚀 Funcionalidades Principais
+
+- **🔒 Autenticação e Segurança**: Login persistente com controle de sessão e proteção de rotas privadas.
+- **🛡️ Permissões Granulares (RBAC)**: Diferenciação entre níveis de acesso (Admin vs Funcionário).
+- **⏱️ Agendamento Inteligente**: Backend em Python com APScheduler para disparos automáticos.
+- **📊 Relatórios**: Exportação de logs de envio para formato Excel (.xlsx).
+- **📱 Responsividade Total**: Interface construída com Tailwind CSS para operação em desktop e tablets.
+
+---
+
+### 📋 Pré-requisitos
+Antes de começar, você vai precisar ter instalado:
+- **Python 3.10+** (Backend)
+- **Node.js 18+** (Frontend)
+- **Docker & Docker Compose** (Opcional)
 
 ## 🐳 Rodando com Docker (Recomendado)
 A maneira mais rápida de subir o ecossistema completo:
@@ -41,27 +59,23 @@ pip install -r requirements.txt
 ```bash
 python -m app.main
 ```
+- Dashboard: http://localhost:5173 | API: http://localhost:8000
 
-##  Estrutura do Repositório
+## 💻 Instalação Manual (Frontend)
 
-- **/backend**: API em Python (FastAPI) com motor de agendamento e logs.
-- **/frontend**: Dashboard Administrativo em React (Vite) + Tailwind CSS + Sistema de Permissões.
-
-##  Como rodar o projeto completo
-
-### 1. Iniciar o Backend
-```bash
-cd backend
-pip install -r requirements.txt
-python -m app.main
-```
-
-### 2. Iniciar o Frontend
 ```bash
 cd frontend
 npm install
 npm run dev
 ```
-
 - Acesse o Dashboard em: http://localhost:5173
 
+### 🏗️ Estrutura do Repositório
+- /backend: API em Python (FastAPI) com motor de agendamento e persistência de logs.
+
+- /frontend: SPA em React (Vite) com Context API e Tailwind CSS.
+
+- /assets: Documentação visual e assets do projeto.
+
+---
+<div align="center"> <p>Desenvolvido por <b>Vanessa Gomes</b> | Desenvolvedora Full Stack © 2026</p> </div>
