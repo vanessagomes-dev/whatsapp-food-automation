@@ -7,7 +7,7 @@ Este é um ecossistema completo para automação de disparos de mensagens para r
 <div align="center">
   <img src="./assets/dashboard.PNG" width="32%" alt="Dashboard" />
   <img src="./assets/Historico.PNG" width="32%" alt="Histórico" />
-  <img src="./assets/Settings.PNG" width="32%" alt="Configurações" />
+  <img src="./assets/Settigns.PNG" width="32%" alt="Configurações" />
 </div>
 
 #### 🛠️ Detalhes Técnicos das Telas:
