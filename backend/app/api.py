@@ -43,7 +43,7 @@ scheduler.add_job(
     executar_envio_agendado, "cron", hour=11, minute=30, args=["almoco"]
 )
 scheduler.add_job(
-    executar_envio_agendado, "cron", hour=15, minute=30, args=["lanche_tarde"]
+    executar_envio_agendado, "cron", hour=16, minute=57, args=["lanche_tarde"]
 )
 scheduler.add_job(
     executar_envio_agendado, "cron", hour=19, minute=0, args=["jantar"]
