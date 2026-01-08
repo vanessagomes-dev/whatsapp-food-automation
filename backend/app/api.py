@@ -1,9 +1,11 @@
 import json
 import os
 from typing import List, Optional
+from datetime import datetime
 from fastapi import FastAPI, Query, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
+from apscheduler.schedulers.background import BackgroundScheduler
 
 from .schemas import MessageHistoryResponse
 from .storage import load_messages
@@ -15,6 +17,51 @@ app = FastAPI(
 )
 
 USERS_FILE = "app/data/users.json"
+
+# ----------------------------------------------------------------
+# CONFIGURAÇÃO DO SCHEDULER (AGENDADOR)
+# ----------------------------------------------------------------
+scheduler = BackgroundScheduler()
+
+
+def executar_envio_agendado(tipo: str):
+    """Função que o scheduler chama nos horários definidos"""
+    data_hora = datetime.now()
+    print(f"\n--- ⏰ DISPARO AGENDADO: {tipo.upper()} em {data_hora} ---")
+    try:
+        enviar_mensagem(tipo=tipo, origem="scheduler")
+        print(f"--- ✅ SUCESSO NO DISPARO AGENDADO: {tipo} ---\n")
+    except Exception as e:
+        print(f"--- ❌ ERRO NO DISPARO AGENDADO: {e} ---\n")
+
+
+# Agendando os horários das refeições
+scheduler.add_job(
+    executar_envio_agendado, "cron", hour=8, minute=0, args=["cafe_da_manha"]
+)
+scheduler.add_job(
+    executar_envio_agendado, "cron", hour=11, minute=30, args=["almoco"]
+)
+scheduler.add_job(
+    executar_envio_agendado, "cron", hour=15, minute=30, args=["lanche_tarde"]
+)
+scheduler.add_job(
+    executar_envio_agendado, "cron", hour=19, minute=0, args=["jantar"]
+)
+
+
+@app.on_event("startup")
+def iniciar_agendador():
+    if not scheduler.running:
+        scheduler.start()
+        print("🚀 Scheduler iniciado: Monitorando horários de refeições...")
+
+
+@app.on_event("shutdown")
+def parar_agendador():
+    if scheduler.running:
+        scheduler.shutdown()
+        print("🛑 Scheduler finalizado.")
 
 
 class LoginRequest(BaseModel):
@@ -37,11 +84,10 @@ async def login(request: LoginRequest):
     with open(USERS_FILE, "r") as f:
         users = json.load(f)
 
-    # Busca o usuário quebrando a linha para respeitar os 79 caracteres
     user = next(
         (u for u in users if u["email"] == request.email
          and u["password"] == request.password),
-        None
+        None,
     )
 
     if not user:
