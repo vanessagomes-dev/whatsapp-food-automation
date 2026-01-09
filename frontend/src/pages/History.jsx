@@ -14,7 +14,6 @@ export default function History() {
   const [totalItems, setTotalItems] = useState(0);
   const itemsPerPage = 10;
 
-  // Pegar dados do usuário para controle de visualização
   const user = useMemo(() => {
     const data = localStorage.getItem("@WhatsAppFood:user");
     return data ? JSON.parse(data) : null;
@@ -75,17 +74,17 @@ export default function History() {
   };
 
   return (
-    <>
-      <div className="bg-white border-b border-slate-200 py-5 px-6 mb-8 rounded-2xl shadow-sm flex flex-col md:flex-row justify-between items-center gap-4">
+    <div className="transition-colors duration-300">
+      {/* HEADER DA PÁGINA */}
+      <div className="bg-white dark:bg-[#1e293b] border-b border-slate-200 dark:border-slate-800 py-5 px-6 mb-8 rounded-2xl shadow-sm flex flex-col md:flex-row justify-between items-center gap-4 transition-colors">
         <div>
-          {/* SÓ MOSTRA O LINK SE FOR ADMIN */}
           {user?.role === "admin" && (
-            <Link to="/" className="text-indigo-600 hover:text-indigo-800 text-xs font-bold flex items-center gap-1 mb-1">
+            <Link to="/" className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 text-xs font-bold flex items-center gap-1 mb-1">
               ← Dashboard
             </Link>
           )}
-          <h1 className="text-xl font-bold text-slate-800">Histórico de Mensagens</h1>
-          <p className="text-slate-500 text-xs">Consulta e exportação de logs</p>
+          <h1 className="text-xl font-bold text-slate-800 dark:text-white">Histórico de Mensagens</h1>
+          <p className="text-slate-500 dark:text-slate-400 text-xs">Consulta e exportação de logs</p>
         </div>
         <button
           onClick={exportToExcel}
@@ -96,26 +95,28 @@ export default function History() {
         </button>
       </div>
 
-      <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm mb-6 flex flex-col md:flex-row items-center gap-4">
+      {/* BARRA DE BUSCA */}
+      <div className="bg-white dark:bg-[#1e293b] p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm mb-6 flex flex-col md:flex-row items-center gap-4 transition-colors">
         <div className="relative flex-1 w-full">
           <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">🔍</span>
           <input
             type="text"
-            placeholder="Buscar..."
-            className="w-full pl-12 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none text-sm focus:ring-2 focus:ring-indigo-500 transition-all"
+            placeholder="Buscar por mensagem, tipo ou origem..."
+            className="w-full pl-12 pr-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 dark:text-white rounded-xl outline-none text-sm focus:ring-2 focus:ring-indigo-500 transition-all"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
-        <div className="text-xs font-bold text-slate-500 bg-slate-100 px-4 py-2 rounded-lg whitespace-nowrap">
+        <div className="text-xs font-bold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-4 py-2 rounded-lg whitespace-nowrap border border-transparent dark:border-slate-700">
           {filteredMessages.length} registros nesta página
         </div>
       </div>
 
-      <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+      {/* TABELA DE HISTÓRICO */}
+      <div className="bg-white dark:bg-[#1e293b] rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden transition-colors">
         <div className="overflow-x-auto">
           <table className="w-full text-sm text-left">
-            <thead className="bg-slate-50 text-slate-500 font-bold uppercase text-[10px] tracking-wider">
+            <thead className="bg-slate-50 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 font-bold uppercase text-[10px] tracking-wider border-b border-slate-100 dark:border-slate-800">
               <tr>
                 <th className="px-6 py-4">Data/Hora</th>
                 <th className="px-6 py-4">Tipo</th>
@@ -124,17 +125,17 @@ export default function History() {
                 <th className="px-6 py-4 text-center">Modo</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
               {loading ? (
                 <tr><td colSpan="5" className="px-6 py-12 text-center text-slate-400 animate-pulse font-medium">Carregando dados...</td></tr>
               ) : filteredMessages.length === 0 ? (
                 <tr><td colSpan="5" className="px-6 py-8 text-center text-slate-400">Nenhum dado encontrado.</td></tr>
               ) : (
                 filteredMessages.map((msg, index) => (
-                  <tr key={index} className="hover:bg-indigo-50/30 transition-colors">
-                    <td className="px-6 py-4 whitespace-nowrap text-slate-500">{new Date(msg.timestamp).toLocaleString()}</td>
-                    <td className="px-6 py-4 font-semibold text-slate-700 capitalize">{msg.tipo?.replace('_', ' ')}</td>
-                    <td className="px-6 py-4 text-slate-600 italic">"{msg.mensagem}"</td>
+                  <tr key={index} className="hover:bg-indigo-50/30 dark:hover:bg-indigo-900/10 transition-colors">
+                    <td className="px-6 py-4 whitespace-nowrap text-slate-500 dark:text-slate-400 font-medium">{new Date(msg.timestamp).toLocaleString()}</td>
+                    <td className="px-6 py-4 font-bold text-slate-700 dark:text-slate-200 capitalize">{msg.tipo?.replace('_', ' ')}</td>
+                    <td className="px-6 py-4 text-slate-600 dark:text-slate-400 italic font-medium">"{msg.mensagem}"</td>
                     <td className="px-6 py-4 text-center"><StatusBadge value={msg.origem} type="origem" /></td>
                     <td className="px-6 py-4 text-center"><StatusBadge value={msg.modo || 'mock'} type="modo" /></td>
                   </tr>
@@ -145,8 +146,9 @@ export default function History() {
         </div>
       </div>
 
+      {/* PAGINAÇÃO */}
       <div className="flex justify-between items-center mt-6 px-2">
-        <p className="text-xs text-slate-500">Página {currentPage} de {totalPages || 1}</p>
+        <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Página {currentPage} de {totalPages || 1}</p>
         <div className="flex gap-2">
           <button 
             disabled={currentPage === 1} 
@@ -154,7 +156,7 @@ export default function History() {
               setCurrentPage(prev => prev - 1);
               window.scrollTo({ top: 0, behavior: 'smooth' });
             }} 
-            className="px-4 py-2 border rounded-xl text-xs disabled:opacity-30"
+            className="px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-300 disabled:opacity-30 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all shadow-sm"
           >
             Anterior
           </button>
@@ -164,12 +166,12 @@ export default function History() {
               setCurrentPage(prev => prev + 1);
               window.scrollTo({ top: 0, behavior: 'smooth' });
             }} 
-            className="px-4 py-2 bg-white border rounded-xl text-xs disabled:opacity-30"
+            className="px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-300 disabled:opacity-30 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all shadow-sm"
           >
             Próxima
           </button>
         </div>
       </div>
-    </>
+    </div>
   );
 }
