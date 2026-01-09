@@ -3,9 +3,8 @@
  * @author      Vanessa Gomes <vanessagomes@gmail.com>
  * @copyright   2026 Vanessa Gomes. Todos os direitos reservados.
  * @license     Proprietary / All rights reserved
- * * Este código é de autoria exclusiva e não pode ser redistribuído 
- * ou alterado sem autorização prévia.
  */
+
 // Assinatura de Autoria 
 console.log(
   "%c🛡️ SISTEMA PROTEGIDO",
@@ -16,13 +15,16 @@ console.log(
   "color: #6366f1; font-style: italic;"
 );
 
-import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
-import './index.css'
-import App from './App.jsx'
+import { StrictMode } from 'react';
+import { createRoot } from 'react-dom/client';
+import './index.css';
+import App from './App.jsx';
+import { ThemeProvider } from './context/ThemeProvider';
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-    <App />
+    <ThemeProvider>
+      <App />
+    </ThemeProvider>
   </StrictMode>,
-)
+);
