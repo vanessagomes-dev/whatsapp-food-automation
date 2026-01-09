@@ -106,5 +106,14 @@
     "origem": "scheduler",
     "modo": "mock",
     "timestamp": "2026-01-09T15:32:00.230217"
+  },
+  {
+    "tipo": "lanche_tarde",
+    "mensagem": " *Hora do lanche da tarde!* \n\n1️⃣ Café + bolo\n2️⃣ Suco natural + salgado\n\n Faça seu pedido aqui: https://wa.me/5511999999999",
+    "imagem": "https://via.placeholder.com/600x400?text=Lanche+da+Tarde",
+    "grupo": "GROUP_MOCK_123",
+    "origem": "scheduler",
+    "modo": "mock",
+    "timestamp": "2026-01-09T18:00:00.047590"
   }
 ]
