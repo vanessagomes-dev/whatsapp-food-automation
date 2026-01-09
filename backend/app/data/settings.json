@@ -1,8 +1,6 @@
 {
-    "horarios": {
-        "cafe_da_manha": "07:00",
-        "almoco": "11:00",
-        "lanche_tarde": "15:00",
-        "jantar": "20:29"
-    }
+    "cafe_da_manha": "07:00",
+    "almoco": "12:32",
+    "lanche_tarde": "15:00",
+    "jantar": "20:29"
 }

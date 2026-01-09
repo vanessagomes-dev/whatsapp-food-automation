@@ -97,5 +97,14 @@
     "origem": "api",
     "modo": "mock",
     "timestamp": "2026-01-09T15:27:41.126544"
+  },
+  {
+    "tipo": "almoco",
+    "mensagem": " *Almoço do dia*:\n\n1️⃣ Prato executivo\n2️⃣ Prato vegetariano\n3️⃣ Prato fitness\n\n Faça seu pedido aqui: https://wa.me/5511999999999",
+    "imagem": "https://via.placeholder.com/600x400?text=Almoco",
+    "grupo": "GROUP_MOCK_123",
+    "origem": "scheduler",
+    "modo": "mock",
+    "timestamp": "2026-01-09T15:32:00.230217"
   }
 ]

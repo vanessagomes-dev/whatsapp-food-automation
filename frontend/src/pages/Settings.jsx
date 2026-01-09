@@ -1,24 +1,25 @@
 import { useState, useEffect } from "react";
-import { User, Shield, Lock, UserPlus, Trash2, X } from "lucide-react";
+import { User, Shield, Lock, UserPlus, Trash2, X, Edit2 } from "lucide-react";
 import { Clock, Terminal, RefreshCw } from "lucide-react";
 import { fetchSchedules, updateSchedules, fetchLogs } from "../services/system";
 import toast from "react-hot-toast";
 import { fetchUsers, createUser, updateAllUsers } from "../services/auth";
+import { EditUserModal, DeleteConfirmModal } from "../components/Modals/UserModals";
 
 export default function Settings() {
     // 1. Pegamos o usuário logado para saber se é Admin
     const userJson = localStorage.getItem("@WhatsAppFood:user");
     const currentUser = userJson ? JSON.parse(userJson) : null;
 
-    // 2. Estado de usuários começa vazio e é preenchido pelo useEffect
+    // 2. Estados
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
-
     const [showModal, setShowModal] = useState(false);
     const [newUser, setNewUser] = useState({ name: "", email: "", password: "", role: "employee" });
     const [newPassword, setNewPassword] = useState("");
+    const [editingUser, setEditingUser] = useState(null);
+    const [userToDelete, setUserToDelete] = useState(null);
 
-    // NOVOS ESTADOS
     const [schedules, setSchedules] = useState({
         cafe_da_manha: "08:00",
         almoco: "12:00",
@@ -32,30 +33,24 @@ export default function Settings() {
     useEffect(() => {
         const loadSystemData = async () => {
             try {
-                // 1. Carrega horários
                 const schedData = await fetchSchedules();
                 if (schedData && Object.keys(schedData).length > 0) setSchedules(schedData);
 
-                // 2. Carrega logs iniciais
                 const logData = await fetchLogs();
                 setLogs(logData);
 
-                // 3. ADICIONE ISSO: Carrega a lista de usuários da API
                 const usersData = await fetchUsers();
                 setUsers(usersData);
-
             } catch (err) {
                 console.error("Erro ao carregar dados do sistema", err);
                 toast.error("Erro ao sincronizar com o servidor.");
             } finally {
-                // 4. MUITO IMPORTANTE: Desliga o spinner de loading
                 setLoading(false);
             }
         };
 
         loadSystemData();
 
-        // Intervalo de logs (mantenha como está)
         const logInterval = setInterval(async () => {
             try {
                 const latestLogs = await fetchLogs();
@@ -66,7 +61,7 @@ export default function Settings() {
         return () => clearInterval(logInterval);
     }, []);
 
-    // FUNÇÃO PARA SALVAR HORÁRIOS
+    // FUNÇÕES DE MANIPULAÇÃO
     const handleSaveSchedules = async () => {
         setIsSavingSchedule(true);
         try {
@@ -80,13 +75,10 @@ export default function Settings() {
         }
     };
 
-    // 4. FUNÇÃO QUE SALVA NO SERVIDOR (Substituiu a lógica de localStorage)
     const saveToDatabase = async (updatedList) => {
         try {
-            // Chama a rota PUT que criamos no Python para salvar a lista toda
             await updateAllUsers(updatedList);
             setUsers(updatedList);
-            // Backup no storage apenas para manter a sessão se necessário
             localStorage.setItem("@WhatsAppFood:all_users", JSON.stringify(updatedList));
         } catch (err) {
             console.error("Erro ao salvar:", err);
@@ -94,12 +86,9 @@ export default function Settings() {
         }
     };
 
-    // --- FUNÇÕES DE MANIPULAÇÃO AJUSTADAS PARA API ---
-
     const handleAddUser = async (e) => {
         e.preventDefault();
         const loadingToast = toast.loading("Salvando no servidor...");
-
         const newId = (Math.max(...users.map(u => parseInt(u.id || 0)), 0) + 1).toString().padStart(3, '0');
 
         const userToAdd = {
@@ -109,17 +98,13 @@ export default function Settings() {
         };
 
         try {
-            // 1. Envia para a rota POST /v1/users do Python
             await createUser(userToAdd);
-
-            // 2. Atualiza o estado local para refletir na tela
             setUsers([...users, userToAdd]);
-
             setShowModal(false);
             setNewUser({ name: "", email: "", password: "", role: "employee" });
             toast.success(`Usuário ${userToAdd.name} criado com sucesso!`, { id: loadingToast });
         } catch (err) {
-            console.error("Erro na operação de salvamento:", err);
+            console.error("Erro ao criar usuário:", err);
             toast.error("Erro ao criar usuário no servidor.", { id: loadingToast });
         }
     };
@@ -135,37 +120,37 @@ export default function Settings() {
             }
             return u;
         });
-
-        // Aguarda o salvamento no users.json
         await saveToDatabase(updatedUsers);
-        toast.success("Permissões sincronizadas com o servidor!");
     };
 
     const handleUpdatePassword = async () => {
         if (!newPassword) return toast.error("Digite a nova senha.");
-
         const updated = users.map(u =>
             u.id === currentUser.id ? { ...u, password: newPassword } : u
         );
-
         const loadingToast = toast.loading("Atualizando senha...");
         try {
             await saveToDatabase(updated);
             setNewPassword("");
-            toast.success("Senha atualizada no banco de dados!", { id: loadingToast });
+            toast.success("Senha atualizada!", { id: loadingToast });
         } catch {
             toast.error("Erro ao atualizar senha.", { id: loadingToast });
         }
     };
 
-    const handleDelete = async (id) => {
-        if (id === currentUser.id) return toast.error("Você não pode se excluir.");
+    const handleEditSave = async () => {
+        const updated = users.map(u => u.id === editingUser.id ? editingUser : u);
+        await saveToDatabase(updated);
+        setEditingUser(null);
+        toast.success("Usuário atualizado!");
+    };
 
-        if (window.confirm("Deseja realmente excluir este usuário do servidor?")) {
-            const updated = users.filter(u => u.id !== id);
-            await saveToDatabase(updated);
-            toast.success("Usuário removido do arquivo oficial.");
-        }
+    const confirmDelete = async () => {
+        if (!userToDelete) return;
+        const updated = users.filter(u => u.id !== userToDelete.id);
+        await saveToDatabase(updated);
+        setUserToDelete(null);
+        toast.success("Usuário removido.");
     };
 
     if (loading) {
@@ -203,7 +188,7 @@ export default function Settings() {
                 </div>
             </section>
 
-            {/* SEÇÃO 2: ALTERAR SENHA */}
+            {/* SEÇÃO 2: SEGURANÇA */}
             <section className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
                 <div className="flex items-center gap-2 mb-4 text-slate-800">
                     <Lock size={20} className="text-indigo-600" />
@@ -226,7 +211,7 @@ export default function Settings() {
                 </div>
             </section>
 
-            {/* NOVA SEÇÃO: AGENDAMENTOS (Apenas ADM) */}
+            {/* SEÇÃO 3: AGENDAMENTOS (ADM) */}
             {currentUser?.role === 'admin' && (
                 <section className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
                     <div className="p-6 border-b border-slate-100 bg-slate-50 flex items-center gap-2">
@@ -260,13 +245,13 @@ export default function Settings() {
                 </section>
             )}
 
-            {/* NOVA SEÇÃO: MONITORAMENTO DE LOGS (Apenas ADM) */}
+            {/* SEÇÃO 4: LOGS (ADM) */}
             {currentUser?.role === 'admin' && (
                 <section className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
                     <div className="p-6 border-b border-slate-100 bg-slate-50 flex justify-between items-center">
                         <div className="flex items-center gap-2">
                             <Terminal className="text-indigo-600" size={20} />
-                            <h2 className="font-bold text-slate-800">Logs da Automação (Console)</h2>
+                            <h2 className="font-bold text-slate-800">Logs da Automação</h2>
                         </div>
                         <span className="text-[10px] text-slate-400 flex items-center gap-1">
                             <RefreshCw size={10} className="animate-spin" /> Atualizando em tempo real
@@ -280,7 +265,7 @@ export default function Settings() {
                 </section>
             )}
 
-            {/* SEÇÃO 3: GESTÃO DE EQUIPE (Apenas ADM) */}
+            {/* SEÇÃO 5: GESTÃO DE USUÁRIOS (ADM) */}
             {currentUser?.role === 'admin' && (
                 <section className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
                     <div className="p-6 border-b border-slate-100 bg-slate-50 flex justify-between items-center">
@@ -328,9 +313,14 @@ export default function Settings() {
                                             />
                                         </td>
                                         <td className="px-6 py-4 text-right">
-                                            <button onClick={() => handleDelete(u.id)} className="p-2 text-slate-300 hover:text-red-500">
-                                                <Trash2 size={16} />
-                                            </button>
+                                            <div className="flex justify-end gap-2">
+                                                <button onClick={() => setEditingUser(u)} className="p-2 text-slate-400 hover:text-indigo-600 rounded-lg transition-colors">
+                                                    <Edit2 size={16} />
+                                                </button>
+                                                <button onClick={() => setUserToDelete(u)} className="p-2 text-red-400 hover:text-red-600 rounded-lg transition-colors">
+                                                    <Trash2 size={16} />
+                                                </button>
+                                            </div>
                                         </td>
                                     </tr>
                                 ))}
@@ -364,6 +354,22 @@ export default function Settings() {
                     </div>
                 </div>
             )}
+
+            {/* MODAIS DE EDIÇÃO E EXCLUSÃO (Fora do if showModal) */}
+            <EditUserModal 
+                isOpen={!!editingUser} 
+                onClose={() => setEditingUser(null)} 
+                user={editingUser || {}} 
+                setUser={setEditingUser} 
+                onSave={handleEditSave}
+            />
+
+            <DeleteConfirmModal 
+                isOpen={!!userToDelete} 
+                onClose={() => setUserToDelete(null)} 
+                onConfirm={confirmDelete}
+                userName={userToDelete?.name}
+            />
         </div>
     );
 }

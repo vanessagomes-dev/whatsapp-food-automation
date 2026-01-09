@@ -19,9 +19,9 @@
         "permissions": []
     },
     {
-        "name": "Funcion\u00e1rio 001",
-        "email": "user001@food.com",
-        "password": "123",
+        "name": "Funcion\u00e1rio 002",
+        "email": "user002@food.com",
+        "password": "12345",
         "role": "employee",
         "id": "001",
         "permissions": [
