@@ -1,14 +1,13 @@
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
+import { ThemeToggle } from "./ThemeToggle";
 
 export function Header() {
   const navigate = useNavigate();
-  
-  // 1. Buscamos os dados do usuário logado que guardamos no Login
+
   const userJson = localStorage.getItem("@WhatsAppFood:user");
   const user = userJson ? JSON.parse(userJson) : { name: "Usuário", role: "guest" };
 
-  // 2. Função para sair do sistema
   const handleLogout = () => {
     localStorage.removeItem("@WhatsAppFood:user");
     toast.success("Você saiu do sistema.");
@@ -16,53 +15,44 @@ export function Header() {
   };
 
   return (
-    <header className="bg-white border-b border-slate-200 h-20 px-8 flex items-center justify-between shadow-sm sticky top-0 z-10">
-      
-      {/* Lado Esquerdo: Nome do Sistema e Status */}
+    <header className="bg-white dark:bg-[#1e293b] border-b border-slate-200 dark:border-slate-800 h-20 px-8 flex items-center justify-between shadow-sm sticky top-0 z-10 transition-colors duration-300">
+
       <div className="flex items-center gap-4">
         <div className="hidden md:block">
-          <h1 className="text-sm font-bold text-slate-800 leading-tight">
+          <h1 className="text-sm font-bold text-slate-800 dark:text-white leading-tight">
             WhatsApp Food Automation
           </h1>
           <div className="flex items-center gap-1.5">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-            <span className="text-[10px] text-slate-400 uppercase tracking-widest font-black">
+            <span className="text-[10px] text-slate-400 dark:text-slate-500 uppercase tracking-widest font-black">
               Dashboard • MVP v1.0
             </span>
           </div>
         </div>
       </div>
 
-      {/* Lado Direito: Perfil e Botão Sair */}
       <div className="flex items-center gap-6">
-        
-        {/* Bloco do Usuário */}
-        <div className="flex items-center gap-3 pr-6 border-r border-slate-100">
+        <ThemeToggle />
+
+        <div className="flex items-center gap-3 pr-6 border-r border-slate-100 dark:border-slate-800">
           <div className="text-right hidden sm:block">
-            <p className="text-sm font-bold text-slate-700 leading-none mb-1">
+            <p className="text-sm font-bold text-slate-700 dark:text-slate-200 leading-none mb-1">
               {user.name}
             </p>
-            <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-md ${
-              user.role === 'admin' 
-                ? 'bg-indigo-100 text-indigo-600' 
-                : 'bg-slate-100 text-slate-500'
-            }`}>
+            <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-md ${user.role === 'admin'
+              ? 'bg-indigo-100 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400'
+              : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400'
+              }`}>
               {user.role === 'admin' ? 'Administrador' : 'Funcionário'}
             </span>
           </div>
-          
-          {/* Avatar (Iniciais) */}
-          <div className="w-10 h-10 bg-gradient-to-tr from-indigo-600 to-indigo-500 rounded-full flex items-center justify-center text-white font-bold shadow-md shadow-indigo-100 border-2 border-white">
+          {/* Avatar */}
+          <div className="w-10 h-10 bg-gradient-to-tr from-indigo-600 to-indigo-500 rounded-full flex items-center justify-center text-white font-bold shadow-md border-2 border-white dark:border-slate-700">
             {user.name.charAt(0).toUpperCase()}
           </div>
         </div>
 
-        {/* Botão Logout Profissional */}
-        <button 
-          onClick={handleLogout}
-          className="group flex items-center gap-2 hover:bg-red-50 p-2 rounded-xl transition-all duration-200"
-          title="Sair do sistema"
-        >
+        <button onClick={handleLogout} className="group flex items-center gap-2 hover:bg-red-50 dark:hover:bg-red-900/20 p-2 rounded-xl transition-all">
           <div className="text-slate-400 group-hover:text-red-500 transition-colors">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
