@@ -16,7 +16,10 @@ app = FastAPI(
     version="1.0.0",
 )
 
+# Caminhos de arquivos
 USERS_FILE = "app/data/users.json"
+SETTINGS_FILE = "app/data/settings.json"
+LOG_FILE = "app/logs/automation.log"
 
 # ----------------------------------------------------------------
 # CONFIGURAÇÃO DO SCHEDULER (AGENDADOR)
@@ -25,7 +28,7 @@ scheduler = BackgroundScheduler()
 
 
 def executar_envio_agendado(tipo: str):
-    """Função que o scheduler chama nos horários definidos"""
+    """Função chamada pelo agendador nos horários definidos"""
     data_hora = datetime.now()
     print(f"\n--- ⏰ DISPARO AGENDADO: {tipo.upper()} em {data_hora} ---")
     try:
@@ -35,26 +38,47 @@ def executar_envio_agendado(tipo: str):
         print(f"--- ❌ ERRO NO DISPARO AGENDADO: {e} ---\n")
 
 
-# Agendando os horários das refeições
-scheduler.add_job(
-    executar_envio_agendado, "cron", hour=8, minute=0, args=["cafe_da_manha"]
-)
-scheduler.add_job(
-    executar_envio_agendado, "cron", hour=11, minute=30, args=["almoco"]
-)
-scheduler.add_job(
-    executar_envio_agendado, "cron", hour=16, minute=57, args=["lanche_tarde"]
-)
-scheduler.add_job(
-    executar_envio_agendado, "cron", hour=19, minute=0, args=["jantar"]
-)
+def carregar_agendamentos():
+    """Lê o JSON e configura os horários no Scheduler com segurança"""
+    if scheduler.running:
+        scheduler.remove_all_jobs()
+
+    horarios_padrao = {
+        "cafe_da_manha": "08:00",
+        "almoco": "12:00",
+        "lanche_tarde": "16:00",
+        "jantar": "19:00"
+    }
+
+    try:
+        horarios = horarios_padrao
+        if os.path.exists(SETTINGS_FILE):
+            with open(SETTINGS_FILE, "r") as f:
+                dados = json.load(f)
+                if isinstance(dados, dict) and dados:
+                    horarios = dados.get("horarios", dados)
+
+        for tipo, valor in horarios.items():
+            if isinstance(valor, str) and ":" in valor:
+                h, m = valor.split(":")
+                scheduler.add_job(
+                    executar_envio_agendado,
+                    "cron",
+                    hour=int(h),
+                    minute=int(m),
+                    args=[tipo]
+                )
+        print("📅 Horários de disparo sincronizados!")
+    except Exception as e:
+        print(f"⚠️ Erro ao sincronizar horários: {e}")
 
 
 @app.on_event("startup")
 def iniciar_agendador():
     if not scheduler.running:
         scheduler.start()
-        print("🚀 Scheduler iniciado: Monitorando horários de refeições...")
+        carregar_agendamentos()
+        print("🚀 Scheduler iniciado!")
 
 
 @app.on_event("shutdown")
@@ -64,38 +88,73 @@ def parar_agendador():
         print("🛑 Scheduler finalizado.")
 
 
+# ----------------------------------------------------------------
+# ROTAS DE SISTEMA (Schedules e Logs)
+# ----------------------------------------------------------------
+
+@app.get("/v1/system/schedule")
+async def get_schedule():
+    if not os.path.exists(SETTINGS_FILE):
+        return {"horarios": {}}
+    with open(SETTINGS_FILE, "r") as f:
+        dados = json.load(f)
+        return {"horarios": {
+            "cafe_da_manha": "08:00",
+            "almoco": "12:00",
+            "lanche_tarde": "16:00",
+            "jantar": "19:00"
+        }}
+
+    with open(SETTINGS_FILE, "r") as f:
+        try:
+            dados = json.load(f)
+            if isinstance(dados, dict) and "horarios" in dados:
+                return dados
+            # Se vier apenas o objeto dos horários, envelopa ele
+            return {"horarios": dados}
+        except Exception:
+            return {"horarios": {}}
+
+
+@app.post("/v1/system/schedule")
+async def update_schedule(data: dict):
+    with open(SETTINGS_FILE, "w") as f:
+        json.dump(data.get("horarios", data), f, indent=4)
+    carregar_agendamentos()
+    return {"status": "success"}
+
+
+@app.get("/v1/system/logs")
+async def get_logs():
+    if not os.path.exists(LOG_FILE):
+        return {"logs": "Nenhum log gerado ainda."}
+    with open(LOG_FILE, "r", encoding="utf-8") as f:
+        linhas = f.readlines()
+        return {"logs": "".join(linhas[-50:])}
+
+
+# ----------------------------------------------------------------
+# AUTENTICAÇÃO E USUÁRIOS
+# ----------------------------------------------------------------
+
 class LoginRequest(BaseModel):
     email: str
     password: str
 
 
-# --------------------
-# Login e usuários
-# --------------------
-
 @app.post("/v1/auth/login")
 async def login(request: LoginRequest):
     if not os.path.exists(USERS_FILE):
-        raise HTTPException(
-            status_code=500,
-            detail="Base de usuários não encontrada"
-        )
-
+        raise HTTPException(status_code=500, detail="Database missing")
     with open(USERS_FILE, "r") as f:
         users = json.load(f)
-
     user = next(
         (u for u in users if u["email"] == request.email
          and u["password"] == request.password),
         None,
     )
-
     if not user:
-        raise HTTPException(
-            status_code=401,
-            detail="E-mail ou senha incorretos"
-        )
-
+        raise HTTPException(status_code=401, detail="Invalid credentials")
     return user
 
 
@@ -118,24 +177,19 @@ async def update_users(updated_users: List[dict]):
 async def add_user(user: dict):
     with open(USERS_FILE, "r") as f:
         users = json.load(f)
-
     users.append(user)
-
     with open(USERS_FILE, "w") as f:
         json.dump(users, f, indent=4)
     return {"status": "success"}
 
 
-# --------------------
-# CORS (Frontend React)
-# --------------------
+# ----------------------------------------------------------------
+# MIDDLEWARES E HISTÓRICO
+# ----------------------------------------------------------------
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:5173",
-        "http://127.0.0.1:5173",
-    ],
+    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -147,15 +201,7 @@ def root():
     return {"status": "ok"}
 
 
-@app.get("/health")
-def health_check():
-    return {"status": "ok"}
-
-
-@app.get(
-    "/v1/history",
-    response_model=List[MessageHistoryResponse],
-)
+@app.get("/v1/history", response_model=List[MessageHistoryResponse])
 def get_history(
     tipo: Optional[str] = Query(None),
     origem: Optional[str] = Query(None),

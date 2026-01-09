@@ -1,17 +1,30 @@
+import os
 from datetime import datetime
-
 from .config import WHATSAPP_GROUP_ID, TEST_MODE
 from .messages import montar_mensagem
 from .whatsapp_factory import get_whatsapp_client
 from .storage import save_message
 
+# Definimos o caminho do log para o sender saber onde gravar
+LOG_PATH = os.path.join("app", "logs", "automation.log")
 
-def enviar_mensagem(
-    tipo: str,
-    origem: str = "scheduler",
-) -> None:
-    agora = datetime.now().strftime("%H:%M:%S")
-    print(f"[SENDER] Disparo de mensagem tipo: {tipo}")
+
+def logger(mensagem: str):
+    """Função auxiliar para printar no terminal e gravar no arquivo"""
+    data_hora = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    texto_final = f"[{data_hora}] {mensagem}"
+
+    print(texto_final)
+
+    # Garante que a pasta logs exista
+    os.makedirs(os.path.dirname(LOG_PATH), exist_ok=True)
+
+    with open(LOG_PATH, "a", encoding="utf-8") as f:
+        f.write(texto_final + "\n")
+
+
+def enviar_mensagem(tipo: str, origem: str = "scheduler") -> None:
+    logger(f"🚀 Iniciando processo de envio | Tipo: {tipo} | Origem: {origem}")
 
     client = get_whatsapp_client()
 
@@ -21,11 +34,15 @@ def enviar_mensagem(
     else:
         mensagem, imagem = montar_mensagem(tipo)
 
-    client.send_message(
-        group_id=WHATSAPP_GROUP_ID,
-        message=mensagem,
-        image_path=imagem,
-    )
+    try:
+        client.send_message(
+            group_id=WHATSAPP_GROUP_ID,
+            message=mensagem,
+            image_path=imagem,
+        )
+        logger(f"✅ Mensagem enviada para o grupo: {WHATSAPP_GROUP_ID}")
+    except Exception as e:
+        logger(f"❌ ERRO no envio: {str(e)}")
 
     save_message(
         {
@@ -37,11 +54,3 @@ def enviar_mensagem(
             "modo": "mock" if TEST_MODE else "prod",
         }
     )
-
-    print("=" * 60)
-    print(f"[{agora}] ENVIO WHATSAPP ({type(client).__name__})")
-    print(f"Mensagem enviada: {mensagem}")
-    print(f"Grupo destino: {WHATSAPP_GROUP_ID}")
-    print(f"Origem: {origem}")
-    print("Status: ENVIADO")
-    print("=" * 60)

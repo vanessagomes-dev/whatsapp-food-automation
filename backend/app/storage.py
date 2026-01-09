@@ -31,14 +31,13 @@ def load_messages(
     modo: Optional[str] = None,
     skip: int = 0,
     limit: int = 10,
-) -> dict:  # Mudamos para retornar um dicionário com metadados
+) -> dict:
     if not FILE_PATH.exists():
         return {"total": 0, "items": []}
 
     with open(FILE_PATH, "r", encoding="utf-8") as f:
         data = json.load(f)
 
-    # Inverter para que as mensagens mais recentes apareçam primeiro
     data.reverse()
 
     def filtro(mensagem: dict) -> bool:
@@ -53,7 +52,6 @@ def load_messages(
     filtered_data = list(filter(filtro, data))
     total = len(filtered_data)
 
-    # Aplicar paginação
     paginated_items = filtered_data[skip: skip + limit]
 
     return {"total": total, "items": paginated_items}

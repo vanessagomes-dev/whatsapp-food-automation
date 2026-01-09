@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import { User, Shield, Lock, UserPlus, Trash2, X } from "lucide-react";
+import { Clock, Terminal, RefreshCw } from "lucide-react";
+import { fetchSchedules, updateSchedules, fetchLogs } from "../services/system";
 import toast from "react-hot-toast";
 import { fetchUsers, createUser, updateAllUsers } from "../services/auth";
 
@@ -16,21 +18,67 @@ export default function Settings() {
     const [newUser, setNewUser] = useState({ name: "", email: "", password: "", role: "employee" });
     const [newPassword, setNewPassword] = useState("");
 
-    // 3. EFEITO PARA CARREGAR DADOS DA API
+    // NOVOS ESTADOS
+    const [schedules, setSchedules] = useState({
+        cafe_da_manha: "08:00",
+        almoco: "12:00",
+        lanche_tarde: "16:00",
+        jantar: "19:00"
+    });
+    const [logs, setLogs] = useState("Carregando logs...");
+    const [isSavingSchedule, setIsSavingSchedule] = useState(false);
+
+    // EFEITO PARA CARREGAR TUDO AO INICIAR
     useEffect(() => {
-        const loadData = async () => {
+        const loadSystemData = async () => {
             try {
-                const data = await fetchUsers();
-                setUsers(data);
+                // 1. Carrega horários
+                const schedData = await fetchSchedules();
+                if (schedData && Object.keys(schedData).length > 0) setSchedules(schedData);
+
+                // 2. Carrega logs iniciais
+                const logData = await fetchLogs();
+                setLogs(logData);
+
+                // 3. ADICIONE ISSO: Carrega a lista de usuários da API
+                const usersData = await fetchUsers();
+                setUsers(usersData);
+
             } catch (err) {
-                console.error("Erro detalhado:", err);
-                toast.error("Erro ao carregar colaboradores do servidor.");
+                console.error("Erro ao carregar dados do sistema", err);
+                toast.error("Erro ao sincronizar com o servidor.");
             } finally {
+                // 4. MUITO IMPORTANTE: Desliga o spinner de loading
                 setLoading(false);
             }
         };
-        loadData();
+
+        loadSystemData();
+
+        // Intervalo de logs (mantenha como está)
+        const logInterval = setInterval(async () => {
+            try {
+                const latestLogs = await fetchLogs();
+                setLogs(latestLogs);
+            } catch { /* silencia */ }
+        }, 5000);
+
+        return () => clearInterval(logInterval);
     }, []);
+
+    // FUNÇÃO PARA SALVAR HORÁRIOS
+    const handleSaveSchedules = async () => {
+        setIsSavingSchedule(true);
+        try {
+            await updateSchedules(schedules);
+            toast.success("Horários atualizados com sucesso!");
+        } catch (err) {
+            console.error("Erro ao salvar horários:", err);
+            toast.error("Erro ao salvar horários.");
+        } finally {
+            setIsSavingSchedule(false);
+        }
+    };
 
     // 4. FUNÇÃO QUE SALVA NO SERVIDOR (Substituiu a lógica de localStorage)
     const saveToDatabase = async (updatedList) => {
@@ -63,10 +111,10 @@ export default function Settings() {
         try {
             // 1. Envia para a rota POST /v1/users do Python
             await createUser(userToAdd);
-            
+
             // 2. Atualiza o estado local para refletir na tela
             setUsers([...users, userToAdd]);
-            
+
             setShowModal(false);
             setNewUser({ name: "", email: "", password: "", role: "employee" });
             toast.success(`Usuário ${userToAdd.name} criado com sucesso!`, { id: loadingToast });
@@ -95,8 +143,8 @@ export default function Settings() {
 
     const handleUpdatePassword = async () => {
         if (!newPassword) return toast.error("Digite a nova senha.");
-        
-        const updated = users.map(u => 
+
+        const updated = users.map(u =>
             u.id === currentUser.id ? { ...u, password: newPassword } : u
         );
 
@@ -112,7 +160,7 @@ export default function Settings() {
 
     const handleDelete = async (id) => {
         if (id === currentUser.id) return toast.error("Você não pode se excluir.");
-        
+
         if (window.confirm("Deseja realmente excluir este usuário do servidor?")) {
             const updated = users.filter(u => u.id !== id);
             await saveToDatabase(updated);
@@ -177,6 +225,60 @@ export default function Settings() {
                     </button>
                 </div>
             </section>
+
+            {/* NOVA SEÇÃO: AGENDAMENTOS (Apenas ADM) */}
+            {currentUser?.role === 'admin' && (
+                <section className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                    <div className="p-6 border-b border-slate-100 bg-slate-50 flex items-center gap-2">
+                        <Clock className="text-indigo-600" size={20} />
+                        <h2 className="font-bold text-slate-800">Agendamentos de Disparo</h2>
+                    </div>
+                    <div className="p-6 grid grid-cols-1 md:grid-cols-4 gap-4">
+                        {Object.keys(schedules).map((key) => (
+                            <div key={key}>
+                                <label className="block text-[10px] font-black text-slate-400 uppercase mb-1">
+                                    {key.replace(/_/g, ' ')}
+                                </label>
+                                <input
+                                    type="time"
+                                    className="w-full p-2 rounded-lg border border-slate-200 focus:ring-2 focus:ring-indigo-500 outline-none"
+                                    value={schedules[key]}
+                                    onChange={(e) => setSchedules({ ...schedules, [key]: e.target.value })}
+                                />
+                            </div>
+                        ))}
+                        <div className="md:col-span-4 flex justify-end mt-2">
+                            <button
+                                onClick={handleSaveSchedules}
+                                disabled={isSavingSchedule}
+                                className="bg-indigo-600 text-white px-6 py-2 rounded-xl font-bold text-sm hover:bg-indigo-700 disabled:opacity-50"
+                            >
+                                {isSavingSchedule ? "Salvando..." : "Salvar Agendamentos"}
+                            </button>
+                        </div>
+                    </div>
+                </section>
+            )}
+
+            {/* NOVA SEÇÃO: MONITORAMENTO DE LOGS (Apenas ADM) */}
+            {currentUser?.role === 'admin' && (
+                <section className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                    <div className="p-6 border-b border-slate-100 bg-slate-50 flex justify-between items-center">
+                        <div className="flex items-center gap-2">
+                            <Terminal className="text-indigo-600" size={20} />
+                            <h2 className="font-bold text-slate-800">Logs da Automação (Console)</h2>
+                        </div>
+                        <span className="text-[10px] text-slate-400 flex items-center gap-1">
+                            <RefreshCw size={10} className="animate-spin" /> Atualizando em tempo real
+                        </span>
+                    </div>
+                    <div className="p-4 bg-slate-900 m-6 rounded-xl">
+                        <pre className="text-xs text-green-400 font-mono h-48 overflow-y-auto whitespace-pre-wrap">
+                            {logs}
+                        </pre>
+                    </div>
+                </section>
+            )}
 
             {/* SEÇÃO 3: GESTÃO DE EQUIPE (Apenas ADM) */}
             {currentUser?.role === 'admin' && (

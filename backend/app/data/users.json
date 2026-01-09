@@ -16,6 +16,14 @@
         "password": "1234",
         "role": "employee",
         "id": "002",
+        "permissions": []
+    },
+    {
+        "name": "Funcion\u00e1rio 001",
+        "email": "user001@food.com",
+        "password": "123",
+        "role": "employee",
+        "id": "001",
         "permissions": [
             "history"
         ]

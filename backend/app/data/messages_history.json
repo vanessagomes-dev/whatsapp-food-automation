@@ -79,5 +79,14 @@
     "origem": "scheduler",
     "modo": "mock",
     "timestamp": "2026-01-08T19:57:00.088761"
+  },
+  {
+    "tipo": "jantar",
+    "mensagem": " *Jantar servido!* Confira as opções:\n\n1️⃣ Prato caseiro\n2️⃣ Sopa\n3️⃣ Opção leve\n\n Faça seu pedido aqui: https://wa.me/5511999999999",
+    "imagem": "https://via.placeholder.com/600x400?text=Jantar",
+    "grupo": "GROUP_MOCK_123",
+    "origem": "scheduler",
+    "modo": "mock",
+    "timestamp": "2026-01-08T23:29:00.340090"
   }
 ]
