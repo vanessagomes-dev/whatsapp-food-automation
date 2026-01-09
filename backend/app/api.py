@@ -7,7 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from apscheduler.schedulers.background import BackgroundScheduler
 
-from .schemas import MessageHistoryResponse
+# Importações internas do seu projeto
 from .storage import load_messages
 from .sender import enviar_mensagem
 
@@ -39,7 +39,7 @@ def executar_envio_agendado(tipo: str):
 
 
 def carregar_agendamentos():
-    """Lê o JSON e configura os horários no Scheduler com segurança"""
+    """Lê o JSON e configura os horários no Scheduler"""
     if scheduler.running:
         scheduler.remove_all_jobs()
 
@@ -87,33 +87,26 @@ def parar_agendador():
         scheduler.shutdown()
         print("🛑 Scheduler finalizado.")
 
+# ----------------------------------------------------------------
+# ROTAS DE SISTEMA
+# ----------------------------------------------------------------
 
-# ----------------------------------------------------------------
-# ROTAS DE SISTEMA (Schedules e Logs)
-# ----------------------------------------------------------------
 
 @app.get("/v1/system/schedule")
 async def get_schedule():
     if not os.path.exists(SETTINGS_FILE):
         return {"horarios": {}}
-    with open(SETTINGS_FILE, "r") as f:
-        dados = json.load(f)
-        return {"horarios": {
-            "cafe_da_manha": "08:00",
-            "almoco": "12:00",
-            "lanche_tarde": "16:00",
-            "jantar": "19:00"
-        }}
 
-    with open(SETTINGS_FILE, "r") as f:
-        try:
+    try:
+        with open(SETTINGS_FILE, "r") as f:
             dados = json.load(f)
+            # Se o arquivo já tiver a chave "horarios", retorna direto
             if isinstance(dados, dict) and "horarios" in dados:
                 return dados
-            # Se vier apenas o objeto dos horários, envelopa ele
+            # Caso contrário, envelopa os dados
             return {"horarios": dados}
-        except Exception:
-            return {"horarios": {}}
+    except Exception:
+        return {"horarios": {}}
 
 
 @app.post("/v1/system/schedule")
@@ -132,10 +125,10 @@ async def get_logs():
         linhas = f.readlines()
         return {"logs": "".join(linhas[-50:])}
 
-
 # ----------------------------------------------------------------
 # AUTENTICAÇÃO E USUÁRIOS
 # ----------------------------------------------------------------
+
 
 class LoginRequest(BaseModel):
     email: str
@@ -172,63 +165,56 @@ async def update_users(updated_users: List[dict]):
         json.dump(updated_users, f, indent=4)
     return {"status": "success"}
 
-
-@app.post("/v1/users")
-async def add_user(user: dict):
-    with open(USERS_FILE, "r") as f:
-        users = json.load(f)
-    users.append(user)
-    with open(USERS_FILE, "w") as f:
-        json.dump(users, f, indent=4)
-    return {"status": "success"}
-
-
 # ----------------------------------------------------------------
-# MIDDLEWARES E HISTÓRICO
+# HISTÓRICO E DISPAROS (CORRIGIDO)
 # ----------------------------------------------------------------
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
 
-@app.get("/")
-def root():
-    return {"status": "ok"}
-
-
-@app.get("/v1/history", response_model=List[MessageHistoryResponse])
+@app.get("/v1/history")
 def get_history(
-    tipo: Optional[str] = Query(None),
-    origem: Optional[str] = Query(None),
-    modo: Optional[str] = Query(None),
-):
-    return load_messages(tipo=tipo, origem=origem, modo=modo)
-
-
-@app.get("/history")
-def get_history_alias(
     tipo: Optional[str] = Query(None),
     origem: Optional[str] = Query(None),
     modo: Optional[str] = Query(None),
     page: int = Query(1, ge=1),
     limit: int = Query(10, ge=1),
 ):
-    skip = (page - 1) * limit
-    return load_messages(
-        tipo=tipo,
-        origem=origem,
-        modo=modo,
-        skip=skip,
-        limit=limit
-    )
+    """Retorna o histórico com paginação corrigida"""
+    # 1. Busca as mensagens
+    resultado = load_messages(tipo=tipo, origem=origem, modo=modo)
+
+    # 2. GARANTIA: Se o resultado não for uma lista, transformamos em uma
+    # Isso evita o erro "unhashable type: slice"
+    if isinstance(resultado, dict):
+        todas_mensagens = resultado.get("items", list(resultado.values()))
+    else:
+        todas_mensagens = resultado if isinstance(resultado, list) else []
+
+    # 3. Agora o fatiamento (slice) vai funcionar com segurança
+    total = len(todas_mensagens)
+    inicio = (page - 1) * limit
+    fim = inicio + limit
+    items_paginados = todas_mensagens[inicio:fim]
+
+    return {
+        "total": total,
+        "items": items_paginados
+    }
 
 
 @app.post("/v1/send/test-now")
 def send_test_message():
     enviar_mensagem(tipo="teste_now", origem="api")
     return {"status": "success"}
+
+
+@app.get("/")
+def root():
+    return {"status": "ok", "message": "API está rodando perfeitamente!"}

@@ -16,7 +16,7 @@ export interface HistoryResponse {
 }
 
 export async function fetchHistory(page = 1, limit = 10, tipo?: string, origem?: string) {
-  const response = await api.get<HistoryResponse>("/history", {
+  const response = await api.get<HistoryResponse>("/v1/history", {
     params: {
       page,
       limit,
