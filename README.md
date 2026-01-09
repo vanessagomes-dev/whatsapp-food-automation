@@ -23,8 +23,9 @@ Este é um ecossistema completo para automação de disparos de mensagens para r
 - **🔒 Autenticação e Segurança**: Login persistente com controle de sessão e proteção de rotas privadas.
 - **🛡️ Permissões Granulares (RBAC)**: Diferenciação entre níveis de acesso (Admin vs Funcionário).
 - **⏱️ Agendamento Inteligente**: Backend em Python com APScheduler para disparos automáticos.
-- **📊 Relatórios**: Exportação de logs de envio para formato Excel (.xlsx).
-- **📱 Responsividade Total**: Interface construída com Tailwind CSS para operação em desktop e tablets.
+- **🌓 Dark Mode Nativo**: Suporte completo a temas claro e escuro com persistência de preferência via Context API.
+- **📱 Interface Mobile-First**: Sidebar retrátil e layout adaptável para smartphones, tablets e desktop.
+- **📊 Gráficos Inteligentes**: Visualização de dados por categoria com paleta de cores dinâmica para facilitar a leitura.
 
 ---
 
