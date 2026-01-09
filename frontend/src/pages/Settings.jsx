@@ -5,6 +5,7 @@ import { fetchSchedules, updateSchedules, fetchLogs } from "../services/system";
 import toast from "react-hot-toast";
 import { fetchUsers, createUser, updateAllUsers } from "../services/auth";
 import { EditUserModal, DeleteConfirmModal } from "../components/Modals/UserModals";
+import { CreateUserModal } from "../components/Modals/CreateUserModal";
 
 export default function Settings() {
     // 1. Pegamos o usuário logado para saber se é Admin
@@ -331,42 +332,27 @@ export default function Settings() {
             )}
 
             {/* MODAL DE CADASTRO */}
-            {showModal && (
-                <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-                    <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl overflow-hidden">
-                        <div className="p-6 bg-slate-50 border-b flex justify-between items-center">
-                            <h3 className="font-bold text-slate-800">Cadastrar Colaborador</h3>
-                            <button onClick={() => setShowModal(false)} className="text-slate-400 hover:text-slate-600"><X size={20} /></button>
-                        </div>
-                        <form onSubmit={handleAddUser} className="p-6 space-y-4">
-                            <input required type="text" placeholder="Nome" className="w-full p-3 bg-slate-50 border rounded-xl"
-                                value={newUser.name} onChange={e => setNewUser({ ...newUser, name: e.target.value })} />
-                            <input required type="email" placeholder="E-mail" className="w-full p-3 bg-slate-50 border rounded-xl"
-                                value={newUser.email} onChange={e => setNewUser({ ...newUser, email: e.target.value })} />
-                            <input required type="password" placeholder="Senha Inicial" className="w-full p-3 bg-slate-50 border rounded-xl"
-                                value={newUser.password} onChange={e => setNewUser({ ...newUser, password: e.target.value })} />
-                            <select className="w-full p-3 bg-slate-50 border rounded-xl" value={newUser.role} onChange={e => setNewUser({ ...newUser, role: e.target.value })}>
-                                <option value="employee">Funcionário</option>
-                                <option value="admin">Administrador</option>
-                            </select>
-                            <button type="submit" className="w-full bg-indigo-600 text-white py-3.5 rounded-xl font-bold hover:bg-indigo-700 transition-all">Salvar Usuário</button>
-                        </form>
-                    </div>
-                </div>
-            )}
+            <CreateUserModal
+                isOpen={showModal}
+                onClose={() => setShowModal(false)}
+                newUser={newUser}
+                setNewUser={setNewUser}
+                onSave={handleAddUser}
+            />
 
-            {/* MODAIS DE EDIÇÃO E EXCLUSÃO (Fora do if showModal) */}
-            <EditUserModal 
-                isOpen={!!editingUser} 
-                onClose={() => setEditingUser(null)} 
-                user={editingUser || {}} 
-                setUser={setEditingUser} 
+            {/* MODAL DE EDIÇÃO */}
+            <EditUserModal
+                isOpen={!!editingUser}
+                onClose={() => setEditingUser(null)}
+                user={editingUser || {}}
+                setUser={setEditingUser}
                 onSave={handleEditSave}
             />
 
-            <DeleteConfirmModal 
-                isOpen={!!userToDelete} 
-                onClose={() => setUserToDelete(null)} 
+            {/* MODAL DE EXCLUSÃO */}
+            <DeleteConfirmModal
+                isOpen={!!userToDelete}
+                onClose={() => setUserToDelete(null)}
                 onConfirm={confirmDelete}
                 userName={userToDelete?.name}
             />
