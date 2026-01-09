@@ -5,11 +5,20 @@ import {
   YAxis,
   Tooltip,
   ResponsiveContainer,
-  CartesianGrid
+  CartesianGrid,
+  Cell 
 } from "recharts";
 
+// Paleta de cores para cada tipo de período
+const TYPE_COLORS = {
+  "ALMOCO": "#f97316",        // Laranja
+  "JANTAR": "#22c55e",        // Verde
+  "LANCHE TARDE": "#6366f1",  // Indigo
+  "TESTE NOW": "#eab308",     // Amarelo
+  "OUTROS": "#94a3b8"         // Cinza
+};
+
 export default function MessagesByTypeChart({ data }) {
- 
   if (!data || data.length === 0) {
     return (
       <div className="flex items-center justify-center h-full text-slate-400 text-sm italic">
@@ -38,7 +47,14 @@ export default function MessagesByTypeChart({ data }) {
           cursor={{ fill: '#f8fafc' }}
           contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
         />
-        <Bar dataKey="value" fill="#4f46e5" radius={[4, 4, 0, 0]} barSize={30} />
+        <Bar dataKey="value" radius={[4, 4, 0, 0]} barSize={30}>
+          {data.map((entry, index) => (
+            <Cell 
+              key={`cell-${index}`} 
+              fill={TYPE_COLORS[entry.name.toUpperCase()] || TYPE_COLORS.OUTROS} 
+            />
+          ))}
+        </Bar>
       </BarChart>
     </ResponsiveContainer>
   );
